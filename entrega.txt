@@ -1,0 +1,61 @@
+==================================================
+
+TRABAJO PRÁCTICO 2 - DESARROLLO DE APLICACIONES WEB
+
+ENTREGA SPRINTS 1 Y 2
+
+==================================================
+
+
+
+1. DATOS DEL ALUMNO
+
+--------------------------------------------------
+
+- Alumno: Santiago Toledo
+
+- Proyecto: Red Social (Full-Stack Monorepo)
+
+
+
+2. ENLACES DEL PROYECTO
+
+--------------------------------------------------
+
+- Repositorio en GitHub: https://github.com/santytoledoo/TP2-SantiagoToledo
+
+- Despliegue en Producción (Vercel): [Pegar aquí tu link de Vercel cuando cargue]
+
+
+
+3. CREDENCIALES DE PRUEBA (ACCESOS)
+
+--------------------------------------------------
+
+- Usuario Administrador / Prueba:
+
+  * Email: admin@test.com
+
+  * Contraseña: 123456
+
+
+
+- Usuario Común / Prueba:
+
+  * Email: user@test.com
+
+  * Contraseña: 123456
+
+
+
+4. ARQUITECTURA Y TECNOLOGÍAS IMPLEMENTADAS
+
+--------------------------------------------------
+
+- Frontend: Angular (Componentes Standalone, Enrutamiento SPA, Formularios Reactivos).
+
+- Backend: Node.js, Express y conexión a Base de Datos.
+
+- Control de versiones: Git / GitHub (Estructura de monorepo).
+
+- Despliegue: Vercel (Configurado para compilación y reescritura de rutas SPA).
