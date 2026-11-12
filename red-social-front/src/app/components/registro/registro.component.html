@@ -1,0 +1,47 @@
+<div class="container">
+  <div class="card card-large">
+    <h2>Crear Cuenta</h2>
+    <form>
+      <div class="grid-form">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" required>
+        </div>
+        <div class="form-group">
+          <label>Apellido</label>
+          <input type="text" required>
+        </div>
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" required>
+        </div>
+        <div class="form-group">
+          <label>Nombre de Usuario</label>
+          <input type="text" required>
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" placeholder="Mayúscula y número requerido" required>
+        </div>
+        <div class="form-group">
+          <label>Repetir Contraseña</label>
+          <input type="password" required>
+        </div>
+        <div class="form-group">
+          <label>Fecha de Nacimiento</label>
+          <input type="date" required>
+        </div>
+        <div class="form-group">
+          <label>Foto de Perfil</label>
+          <input type="file" accept="image/*" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Descripción breve</label>
+        <textarea rows="2" placeholder="Contanos algo sobre vos..."></textarea>
+      </div>
+      <button type="submit" class="btn-primary">Registrarse</button>
+    </form>
+    <p class="link-text">¿Ya tenés cuenta? <a routerLink="/login">Iniciá Sesión</a></p>
+  </div>
+</div>
