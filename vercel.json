@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "red-social-front/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/red-social-front/browser"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/red-social-front/index.html"
+    }
+  ]
+}
