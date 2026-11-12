@@ -1,6 +1,6 @@
 {
   "buildCommand": "cd red-social-front && npm run build",
-  "outputDirectory": "red-social-front/dist/red-social-front/browser",
+  "outputDirectory": "red-social-front/dist/red-social-front",
   "framework": null,
   "rewrites": [
     {
