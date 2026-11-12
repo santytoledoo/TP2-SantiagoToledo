@@ -34,6 +34,7 @@ export class LoginComponent {
   constructor(private router: Router) {}
 
   onLogin() {
+    console.log('Login exitoso con:', this.usuario);
     this.router.navigate(['/publicaciones']);
   }
 }
