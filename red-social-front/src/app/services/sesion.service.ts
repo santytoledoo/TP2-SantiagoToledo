@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 })
 export class SesionService {
   private timerAviso: any = null;
-  private readonly TIEMPO_AVISO_MS = 10 * 60 * 1000; // 10 minutos
+  private readonly TIEMPO_AVISO_MS = 1 * 60 * 1000; // 10 minutos
 
   mostrarModalExtension$ = new BehaviorSubject<boolean>(false);
   extendiendoSesion$ = new BehaviorSubject<boolean>(false);
