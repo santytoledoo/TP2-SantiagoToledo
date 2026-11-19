@@ -10,7 +10,7 @@ import { Usuario, UsuarioSchema } from '../usuarios/schemas/usuario.schema';
     MongooseModule.forFeature([{ name: Usuario.name, schema: UsuarioSchema }]),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'utn-social-tp2-secret-key-2026',
-      signOptions: { expiresIn: 900 },
+      signOptions: { expiresIn: 60 },
     }),
   ],
   controllers: [AuthController],
