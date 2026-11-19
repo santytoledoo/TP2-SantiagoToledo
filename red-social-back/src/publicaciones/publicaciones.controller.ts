@@ -1,33 +1,27 @@
-import { Controller, Get, Post, Delete, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
+import { PublicacionesService } from './publicaciones.service';
 
 @Controller('publicaciones')
 export class PublicacionesController {
-  
+  constructor(private readonly publicacionesService: PublicacionesService) {}
+
   @Post()
-  crearPublicacion(@Body() body: any) {
-    // Título, mensaje, imagen (Sprint 2)
-    return { status: 201, message: 'Publicación creada' };
+  crear(@Body() body: any) {
+    return this.publicacionesService.crear(body);
   }
 
   @Get()
-  obtenerPublicaciones(@Query('limit') limit: number, @Query('offset') offset: number, @Query('orden') orden: string) {
-    // Listado paginado y ordenado por fecha o me gusta (Sprint 2)
-    return [];
+  obtenerTodas(@Query() query: any) {
+    return this.publicacionesService.obtenerTodas(query);
   }
 
   @Post(':id/like')
-  darMeGusta(@Param('id') id: string) {
-    return { message: 'Me gusta agregado' };
-  }
-
-  @Delete(':id/like')
-  quitarMeGusta(@Param('id') id: string) {
-    return { message: 'Me gusta quitado' };
+  toggleLike(@Param('id') id: string, @Body() body: { userId: string }) {
+    return this.publicacionesService.toggleLike(id, body.userId);
   }
 
   @Delete(':id')
-  eliminarPublicacion(@Param('id') id: string) {
-    // Baja lógica (Sprint 2)
-    return { message: 'Publicación eliminada lógicamente' };
+  eliminar(@Param('id') id: string) {
+    return this.publicacionesService.eliminar(id);
   }
 }

@@ -5,10 +5,10 @@ import { PublicacionesComponent } from './components/publicaciones/publicaciones
 import { MiPerfilComponent } from './components/mi-perfil/mi-perfil.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'registro', component: RegistroComponent },
   { path: 'publicaciones', component: PublicacionesComponent },
   { path: 'mi-perfil', component: MiPerfilComponent },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' }
 ];
