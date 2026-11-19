@@ -2,13 +2,14 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { SesionService } from '../../services/sesion.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="auth-wrapper">
       <div class="auth-card">
@@ -72,7 +73,7 @@ import { environment } from '../../../environments/environment';
         </p>
       </div>
     </div>
-  `
+  `,
 })
 export class LoginComponent {
   identificador = '';
@@ -85,7 +86,8 @@ export class LoginComponent {
   constructor(
     private router: Router,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sesionService: SesionService
   ) {}
 
   get errorIdentificador(): string {
@@ -109,25 +111,29 @@ export class LoginComponent {
     if (this.errorIdentificador || this.errorPassword) return;
 
     this.cargando = true;
-    this.http.post<any>(`${environment.apiUrl}/auth/login`, {
-      identificador: this.identificador.trim(),
-      password: this.password
-    }).subscribe({
-      next: (response) => {
-        this.cargando = false;
-        if (response?.usuario) {
-          localStorage.setItem('usuario', JSON.stringify(response.usuario));
-        }
-        if (response?.access_token) {
-          localStorage.setItem('token', response.access_token);
-        }
-        this.router.navigate(['/publicaciones']);
-      },
-      error: (err) => {
-        this.cargando = false;
-        this.errorServidor = err?.error?.message || 'No se pudo iniciar sesión. Verificá tus datos.';
-        this.cdr.detectChanges();
-      }
-    });
+    this.http
+      .post<any>(`${environment.apiUrl}/auth/login`, {
+        identificador: this.identificador.trim(),
+        password: this.password,
+      })
+      .subscribe({
+        next: (response) => {
+          this.cargando = false;
+          if (response?.usuario) {
+            localStorage.setItem('usuario', JSON.stringify(response.usuario));
+          }
+          if (response?.access_token) {
+            localStorage.setItem('token', response.access_token);
+          }
+          this.sesionService.iniciarTemporizador();
+          this.router.navigate(['/publicaciones']);
+        },
+        error: (err) => {
+          this.cargando = false;
+          this.errorServidor =
+            err?.error?.message || 'No se pudo iniciar sesión. Verificá tus datos.';
+          this.cdr.detectChanges();
+        },
+      });
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { PublicacionesService } from './publicaciones.service';
 
 @Controller('publicaciones')
@@ -15,9 +15,37 @@ export class PublicacionesController {
     return this.publicacionesService.obtenerTodas(query);
   }
 
+  @Get(':id/comentarios')
+  obtenerComentarios(@Param('id') id: string, @Query() query: any) {
+    return this.publicacionesService.obtenerComentarios(id, query);
+  }
+
+  @Post(':id/comentarios')
+  crearComentario(@Param('id') id: string, @Body() body: any) {
+    return this.publicacionesService.crearComentario(id, body);
+  }
+
+  @Put(':id/comentarios/:comentarioId')
+  editarComentarioEnPublicacion(
+    @Param('comentarioId') comentarioId: string,
+    @Body() body: any,
+  ) {
+    return this.publicacionesService.editarComentario(comentarioId, body);
+  }
+
+  @Put('comentarios/:comentarioId')
+  editarComentario(@Param('comentarioId') comentarioId: string, @Body() body: any) {
+    return this.publicacionesService.editarComentario(comentarioId, body);
+  }
+
+  @Get(':id')
+  obtenerPorId(@Param('id') id: string) {
+    return this.publicacionesService.obtenerPorId(id);
+  }
+
   @Post(':id/like')
-  toggleLike(@Param('id') id: string, @Body() body: { userId: string }) {
-    return this.publicacionesService.toggleLike(id, body.userId);
+  toggleLike(@Param('id') id: string, @Body('userId') userId: string) {
+    return this.publicacionesService.toggleLike(id, userId);
   }
 
   @Delete(':id')

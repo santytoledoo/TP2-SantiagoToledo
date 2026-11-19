@@ -18,7 +18,7 @@ export class Usuario extends Document {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ required: true })
+  @Prop()
   fechaNacimiento: string;
 
   @Prop({ default: '' })
@@ -26,6 +26,9 @@ export class Usuario extends Document {
 
   @Prop({ default: '' })
   fotoPerfil: string;
+
+  @Prop({ default: 'usuario', enum: ['usuario', 'administrador'] })
+  rol: string;
 }
 
 export const UsuarioSchema = SchemaFactory.createForClass(Usuario);

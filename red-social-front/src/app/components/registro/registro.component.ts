@@ -2,14 +2,15 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { procesarImagenArchivo } from '../../utils/imagen.util';
+import { SesionService } from '../../services/sesion.service';
 
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="auth-wrapper">
       <div class="auth-card auth-card-wide">
@@ -23,7 +24,6 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         </div>
 
         <form (ngSubmit)="onRegistro()">
-          <!-- Selector y vista previa de foto de perfil -->
           <div style="display: flex; align-items: center; gap: 18px; background: #f8fafc; padding: 14px 18px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-bottom: 20px;">
             <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: #dbeafe; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; flex-shrink: 0; border: 2px solid #2563eb;">
               <img *ngIf="fotoPerfil" [src]="fotoPerfil" alt="Vista previa" style="width: 100%; height: 100%; object-fit: cover;">
@@ -100,7 +100,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         </p>
       </div>
     </div>
-  `
+  `,
 })
 export class RegistroComponent {
   nombre = '';
@@ -124,13 +124,14 @@ export class RegistroComponent {
     username: false,
     password: false,
     rePassword: false,
-    fecha: false
+    fecha: false,
   };
 
   constructor(
     private router: Router,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sesionService: SesionService
   ) {}
 
   get errorNombre(): string {
@@ -234,7 +235,7 @@ export class RegistroComponent {
       password: this.password,
       fechaNacimiento: this.fechaNacimiento,
       descripcion: this.descripcion.trim(),
-      fotoPerfil: this.fotoPerfil
+      fotoPerfil: this.fotoPerfil,
     };
 
     this.http.post<any>(`${environment.apiUrl}/auth/registro`, nuevoUsuario).subscribe({
@@ -246,14 +247,15 @@ export class RegistroComponent {
         if (response?.access_token) {
           localStorage.setItem('token', response.access_token);
         }
-        // Redirige directo al muro de publicaciones
+        this.sesionService.iniciarTemporizador();
         this.router.navigate(['/publicaciones']);
       },
       error: (err) => {
         this.cargando = false;
-        this.errorServidor = err?.error?.message || 'No se pudo completar el registro. Revisá los datos.';
+        this.errorServidor =
+          err?.error?.message || 'No se pudo completar el registro. Revisá los datos.';
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 }

@@ -1,14 +1,18 @@
 import { Routes } from '@angular/router';
+import { CargandoComponent } from './components/cargando/cargando.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegistroComponent } from './components/registro/registro.component';
 import { PublicacionesComponent } from './components/publicaciones/publicaciones.component';
+import { PublicacionDetalleComponent } from './components/publicacion-detalle/publicacion-detalle.component';
 import { MiPerfilComponent } from './components/mi-perfil/mi-perfil.component';
 
 export const routes: Routes = [
+  { path: '', component: CargandoComponent, pathMatch: 'full' },
+  { path: 'cargando', component: CargandoComponent },
   { path: 'login', component: LoginComponent },
   { path: 'registro', component: RegistroComponent },
   { path: 'publicaciones', component: PublicacionesComponent },
+  { path: 'publicacion/:id', component: PublicacionDetalleComponent },
   { path: 'mi-perfil', component: MiPerfilComponent },
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: '' },
 ];

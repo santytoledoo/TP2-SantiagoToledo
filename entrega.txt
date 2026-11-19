@@ -1,61 +1,91 @@
-==================================================
+# UTN Social — Red Social Full-Stack (TP2)
 
-TRABAJO PRÁCTICO 2 - DESARROLLO DE APLICACIONES WEB
+Aplicación web full-stack de red social desarrollada para la **Tecnicatura Universitaria en Programación** (Universidad Tecnológica Nacional — Facultad Regional Avellaneda). Permite a los usuarios registrarse, iniciar sesión, gestionar su perfil con foto y biografía, y compartir publicaciones con imágenes e interacciones en tiempo real.
 
-ENTREGA SPRINTS 1 Y 2
+---
 
-==================================================
+## Enlaces en Producción
 
+* **Aplicación Web (Frontend en Vercel):** [https://utn-social-tp2.vercel.app](https://utn-social-tp2.vercel.app)
+* **API REST (Backend en Render):** [https://tp2-santiagotoledo.onrender.com](https://tp2-santiagotoledo.onrender.com)
+* **Repositorio:** [https://github.com/santytoledoo/TP2-SantiagoToledo](https://github.com/santytoledoo/TP2-SantiagoToledo)
 
+> **Nota:** El backend está alojado en el plan gratuito de Render, por lo que entra en reposo tras 15 minutos de inactividad. La primera petición puede demorar entre 30 y 40 segundos en activar el servidor; luego responde de forma instantánea.
 
-1. DATOS DEL ALUMNO
+---
 
---------------------------------------------------
+## Tecnologías Utilizadas
 
-- Alumno: Santiago Toledo
+* **Frontend:** Angular, TypeScript, HTML5, CSS3, RxJS (`HttpClient`, Standalone Components).
+* **Backend:** NestJS, TypeScript, Mongoose, `bcrypt`, `class-validator`, `class-transformer`.
+* **Base de Datos:** MongoDB Atlas (en la nube).
+* **Despliegue:** Vercel (Frontend SPA con manejo de rutas mediante `vercel.json`) y Render (API REST Node.js).
 
-- Proyecto: Red Social (Full-Stack Monorepo)
+---
 
+## Funcionalidades Principales
 
+* **Registro e Inicio de Sesión:** Alta de usuarios con validación de campos, contraseña encriptada con `bcrypt` y login mediante correo electrónico o nombre de usuario (`@username`).
+* **Muro de Publicaciones (`/publicaciones`):**
+  * Creación de publicaciones con título, descripción e imagen (con redimensionamiento y optimización automática).
+  * Listado paginado desde el backend (`page` y `limit`).
+  * Ordenamiento dinámico por **más recientes** o **más Me gusta**.
+  * Sistema de *Me gusta* (toggle) y eliminación de publicaciones propias con confirmación.
+  * Sincronización automática de la foto de perfil y datos del autor en todas sus publicaciones.
+* **Perfil de Usuario (`/mi-perfil`):**
+  * Visualización limpia de datos del usuario, biografía, métricas de publicaciones y *Me gusta* recibidos.
+  * Cambio rápido de foto de perfil desde el avatar o edición completa de nombre, apellido, usuario, correo, fecha de nacimiento y biografía (hasta 160 caracteres).
+  * Listado paginado de las publicaciones propias del usuario.
 
-2. ENLACES DEL PROYECTO
+---
 
---------------------------------------------------
+## Estructura del Repositorio
 
-- Repositorio en GitHub: https://github.com/santytoledoo/TP2-SantiagoToledo
+```text
+TP2-SantiagoToledo/
+├── red-social-back/        # API REST en NestJS + Mongoose
+│   ├── src/
+│   │   ├── auth/           # Registro, login y gestión de perfil
+│   │   ├── publicaciones/  # CRUD de publicaciones, paginación y likes
+│   │   └── usuarios/       # Esquema de usuario en MongoDB
+│   └── package.json
+├── red-social-front/       # Aplicación web en Angular
+│   ├── src/
+│   │   ├── app/components/ # Login, Registro, Muro, Mi Perfil, Navbar
+│   │   └── environments/   # Configuración de URL de API
+│   └── vercel.json
+└── README.md
+```
 
-- Despliegue en Producción (Vercel): [Pegar aquí tu link de Vercel cuando cargue]
+---
 
+## Ejecución en Entorno Local
 
+### 1. Clonar el repositorio
+```bash
+git clone [https://github.com/santytoledoo/TP2-SantiagoToledo.git](https://github.com/santytoledoo/TP2-SantiagoToledo.git)
+cd TP2-SantiagoToledo
+```
 
-3. CREDENCIALES DE PRUEBA (ACCESOS)
+### 2. Levantar el Backend (`red-social-back`)
+```bash
+cd red-social-back
+npm install
+npm run start:dev
+```
+El servidor queda escuchando en `http://localhost:3000`.
 
---------------------------------------------------
+### 3. Levantar el Frontend (`red-social-front`)
+En otra terminal:
+```bash
+cd red-social-front
+npm install
+npm start
+```
+La aplicación queda disponible en `http://localhost:4200`.
 
-- Usuario Administrador / Prueba:
+---
 
-  * Email: admin@test.com
+## Autor
 
-  * Contraseña: 123456
-
-
-
-- Usuario Común / Prueba:
-
-  * Email: user@test.com
-
-  * Contraseña: 123456
-
-
-
-4. ARQUITECTURA Y TECNOLOGÍAS IMPLEMENTADAS
-
---------------------------------------------------
-
-- Frontend: Angular (Componentes Standalone, Enrutamiento SPA, Formularios Reactivos).
-
-- Backend: Node.js, Express y conexión a Base de Datos.
-
-- Control de versiones: Git / GitHub (Estructura de monorepo).
-
-- Despliegue: Vercel (Configurado para compilación y reescritura de rutas SPA).
+* **Santiago Valentín Toledo** — [@santytoledoo](https://github.com/santytoledoo)

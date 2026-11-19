@@ -1,5 +1,11 @@
-import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import { Usuario } from '../usuarios/schemas/usuario.schema';
 import * as bcrypt from 'bcrypt';
@@ -7,7 +13,8 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(Usuario.name) private usuarioModel: Model<Usuario>
+    @InjectModel(Usuario.name) private usuarioModel: Model<Usuario>,
+    private jwtService: JwtService,
   ) {}
 
   private formatearUsuario(usuario: any) {
@@ -20,7 +27,23 @@ export class AuthService {
       fechaNacimiento: usuario.fechaNacimiento,
       descripcion: usuario.descripcion || '',
       fotoPerfil: usuario.fotoPerfil || '',
+      rol: usuario.rol || 'usuario',
     };
+  }
+
+  private generarToken(usuario: any): string {
+    const payload = {
+      sub: usuario._id.toString(),
+      correo: usuario.correo,
+      username: usuario.username,
+      rol: usuario.rol || 'usuario',
+    };
+    return this.jwtService.sign(payload, { expiresIn: 900 });
+  }
+
+  private limpiarToken(rawToken?: string): string {
+    if (!rawToken) return '';
+    return rawToken.startsWith('Bearer ') ? rawToken.slice(7).trim() : rawToken.trim();
   }
 
   async registrar(dto: any) {
@@ -38,15 +61,17 @@ export class AuthService {
 
     const nuevoUsuario = new this.usuarioModel({
       ...dto,
+      rol: dto.rol === 'administrador' ? 'administrador' : 'usuario',
       password: hashedPassword,
     });
 
     const guardado = await nuevoUsuario.save();
+    const access_token = this.generarToken(guardado);
 
     return {
       status: 201,
       message: 'Usuario creado exitosamente',
-      access_token: 'jwt-token-simulado',
+      access_token,
       usuario: this.formatearUsuario(guardado),
     };
   }
@@ -71,10 +96,61 @@ export class AuthService {
       throw new UnauthorizedException('La contraseña ingresada es incorrecta.');
     }
 
+    const access_token = this.generarToken(usuario);
+
     return {
-      access_token: 'jwt-token-simulado',
+      access_token,
       usuario: this.formatearUsuario(usuario),
     };
+  }
+
+  async autorizar(rawToken?: string) {
+    const token = this.limpiarToken(rawToken);
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado.');
+    }
+
+    try {
+      const payload = this.jwtService.verify(token);
+      const usuario = await this.usuarioModel.findById(payload.sub);
+      if (!usuario) {
+        throw new UnauthorizedException('Usuario no encontrado.');
+      }
+
+      return {
+        valido: true,
+        usuario: this.formatearUsuario(usuario),
+      };
+    } catch {
+      throw new UnauthorizedException('Token inválido o vencido.');
+    }
+  }
+
+  async refrescar(rawToken?: string) {
+    const token = this.limpiarToken(rawToken);
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado.');
+    }
+
+    try {
+      const payload = this.jwtService.verify(token);
+      const nuevoPayload = {
+        sub: payload.sub,
+        correo: payload.correo,
+        username: payload.username,
+        rol: payload.rol || 'usuario',
+      };
+
+      const access_token = this.jwtService.sign(nuevoPayload, { expiresIn: 900 });
+      const usuario = await this.usuarioModel.findById(payload.sub);
+
+      return {
+        access_token,
+        ...(usuario ? { usuario: this.formatearUsuario(usuario) } : {}),
+      };
+    } catch {
+      throw new UnauthorizedException('Token inválido o vencido.');
+    }
   }
 
   async obtenerPerfil(id: string) {
@@ -92,14 +168,20 @@ export class AuthService {
     }
 
     if (datos.correo && datos.correo !== usuario.correo) {
-      const correoOcupado = await this.usuarioModel.findOne({ correo: datos.correo, _id: { $ne: id } });
+      const correoOcupado = await this.usuarioModel.findOne({
+        correo: datos.correo,
+        _id: { $ne: id },
+      });
       if (correoOcupado) {
         throw new BadRequestException('Ese correo electrónico ya pertenece a otra cuenta.');
       }
     }
 
     if (datos.username && datos.username !== usuario.username) {
-      const usernameOcupado = await this.usuarioModel.findOne({ username: datos.username, _id: { $ne: id } });
+      const usernameOcupado = await this.usuarioModel.findOne({
+        username: datos.username,
+        _id: { $ne: id },
+      });
       if (usernameOcupado) {
         throw new BadRequestException('Ese nombre de usuario ya está en uso.');
       }
@@ -116,12 +198,25 @@ export class AuthService {
     }
 
     const actualizado = await usuario.save();
+    const nombreCompleto = `${actualizado.nombre} ${actualizado.apellido}`.trim();
 
-    // Sincronizar foto, nombre y username en todas sus publicaciones del muro
     const pubModel = this.usuarioModel.db.models['Publicacion'];
     if (pubModel) {
-      const nombreCompleto = `${actualizado.nombre} ${actualizado.apellido}`.trim();
       await pubModel.updateMany(
+        { $or: [{ autorId: id.toString() }, { autorId: actualizado._id }] },
+        {
+          $set: {
+            autor: nombreCompleto,
+            autorUsername: actualizado.username,
+            autorFoto: actualizado.fotoPerfil || '',
+          },
+        },
+      );
+    }
+
+    const comModel = this.usuarioModel.db.models['Comentario'];
+    if (comModel) {
+      await comModel.updateMany(
         { $or: [{ autorId: id.toString() }, { autorId: actualizado._id }] },
         {
           $set: {

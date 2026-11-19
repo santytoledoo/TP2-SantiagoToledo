@@ -1,15 +1,15 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { procesarImagenArchivo } from '../../utils/imagen.util';
 
 @Component({
   selector: 'app-publicaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div style="max-width: 680px; margin: 28px auto; padding: 0 18px 50px 18px;">
 
@@ -129,28 +129,39 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
           </div>
         </div>
 
-        <h4 *ngIf="pub.titulo" style="margin: 0 0 8px 0; color: #0f172a; font-size: 18px; font-weight: 700;">
-          {{ pub.titulo }}
-        </h4>
+        <!-- Contenido clickeable para abrir la publicación en grande -->
+        <div (click)="verPublicacion(pub._id)" style="cursor: pointer;">
+          <h4 *ngIf="pub.titulo" style="margin: 0 0 8px 0; color: #0f172a; font-size: 18px; font-weight: 700;">
+            {{ pub.titulo }}
+          </h4>
 
-        <p style="color: #334155; margin: 0 0 14px 0; font-size: 15px; line-height: 1.55; word-break: break-word;">
-          {{ pub.contenido }}
-        </p>
+          <p style="color: #334155; margin: 0 0 14px 0; font-size: 15px; line-height: 1.55; word-break: break-word;">
+            {{ pub.contenido }}
+          </p>
 
-        <div *ngIf="pub.imagen" style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9;">
-          <img [src]="pub.imagen" alt="Imagen de publicación" style="width: 100%; max-height: 420px; object-fit: cover; display: block;">
+          <div *ngIf="pub.imagen" style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9;">
+            <img [src]="pub.imagen" alt="Imagen de publicación" style="width: 100%; max-height: 420px; object-fit: cover; display: block;">
+          </div>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 12px;">
-          <button
-            (click)="darLike(pub._id)"
-            [style.color]="usuarioDioLike(pub) ? '#e11d48' : '#475569'"
-            [style.background]="usuarioDioLike(pub) ? '#ffe4e6' : '#f8fafc'"
-            style="border: 1px solid #e2e8f0; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px;">
-            {{ usuarioDioLike(pub) ? '❤️' : '🤍' }} Me gusta ({{ pub.likes?.length || 0 }})
-          </button>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 12px; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button
+              (click)="darLike(pub._id)"
+              [style.color]="usuarioDioLike(pub) ? '#e11d48' : '#475569'"
+              [style.background]="usuarioDioLike(pub) ? '#ffe4e6' : '#f8fafc'"
+              style="border: 1px solid #e2e8f0; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              {{ usuarioDioLike(pub) ? '❤️' : '🤍' }} Me gusta ({{ pub.likes?.length || 0 }})
+            </button>
 
-          <!-- Borrado con confirmación integrada (sin alert/confirm) -->
+            <button
+              (click)="verPublicacion(pub._id)"
+              style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              💬 Comentar / Ver grande
+            </button>
+          </div>
+
+          <!-- Borrado con confirmación integrada -->
           <div *ngIf="esAutor(pub)">
             <button *ngIf="confirmandoBorradoId !== pub._id" (click)="confirmandoBorradoId = pub._id" style="background: none; border: none; cursor: pointer; color: #dc2626; font-weight: 600; font-size: 13px;">
               🗑️ Eliminar
@@ -191,7 +202,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         </button>
       </div>
     </div>
-  `
+  `,
 })
 export class PublicacionesComponent implements OnInit {
   publicaciones: any[] = [];
@@ -256,6 +267,10 @@ export class PublicacionesComponent implements OnInit {
     this.cargarPublicaciones();
   }
 
+  verPublicacion(id: string) {
+    this.router.navigate(['/publicacion', id]);
+  }
+
   mostrarToast(mensaje: string, tipo: 'success' | 'error' = 'success') {
     this.toastMensaje = mensaje;
     this.toastTipo = tipo;
@@ -293,7 +308,7 @@ export class PublicacionesComponent implements OnInit {
       error: () => {
         this.cargando = false;
         this.mostrarToast('Error al cargar las publicaciones.', 'error');
-      }
+      },
     });
   }
 
@@ -324,7 +339,7 @@ export class PublicacionesComponent implements OnInit {
       autor: nombreCompleto || this.usuarioActual?.username || 'Usuario',
       autorUsername: this.usuarioActual?.username || '',
       autorId: this.usuarioActual?.id || this.usuarioActual?._id || '',
-      autorFoto: this.usuarioActual?.fotoPerfil || ''
+      autorFoto: this.usuarioActual?.fotoPerfil || '',
     };
 
     this.http.post(`${environment.apiUrl}/publicaciones`, body).subscribe({
@@ -342,7 +357,7 @@ export class PublicacionesComponent implements OnInit {
       error: () => {
         this.publicando = false;
         this.mostrarToast('No se pudo crear la publicación.', 'error');
-      }
+      },
     });
   }
 
@@ -356,7 +371,7 @@ export class PublicacionesComponent implements OnInit {
     const userId = this.usuarioActual?.id || this.usuarioActual?._id || this.usuarioActual?.nombre;
     this.http.post(`${environment.apiUrl}/publicaciones/${id}/like`, { userId }).subscribe({
       next: () => this.cargarPublicaciones(),
-      error: () => this.mostrarToast('No se pudo actualizar el Me gusta.', 'error')
+      error: () => this.mostrarToast('No se pudo actualizar el Me gusta.', 'error'),
     });
   }
 
@@ -372,7 +387,7 @@ export class PublicacionesComponent implements OnInit {
         this.cargarPublicaciones();
         this.mostrarToast('Publicación eliminada.');
       },
-      error: () => this.mostrarToast('No se pudo eliminar la publicación.', 'error')
+      error: () => this.mostrarToast('No se pudo eliminar la publicación.', 'error'),
     });
   }
 }
