@@ -53,18 +53,26 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
 
       <!-- Publicación en grande -->
       <div *ngIf="!cargandoPublicacion && publicacion" class="surface-card" style="padding: 28px; border-radius: 20px; margin-bottom: 24px;">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 18px;">
-          <img *ngIf="publicacion.autorFoto" [src]="publicacion.autorFoto" alt="Avatar" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #cbd5e1; flex-shrink: 0;">
-          <div *ngIf="!publicacion.autorFoto" style="width: 52px; height: 52px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
-            {{ (publicacion.autor || 'US').substring(0, 2).toUpperCase() }}
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img *ngIf="publicacion.autorFoto" [src]="publicacion.autorFoto" alt="Avatar" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #cbd5e1; flex-shrink: 0;">
+            <div *ngIf="!publicacion.autorFoto" style="width: 52px; height: 52px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+              {{ (publicacion.autor || 'US').substring(0, 2).toUpperCase() }}
+            </div>
+            <div style="min-width: 0;">
+              <span class="texto-ajustado" style="font-weight: 800; color: #0f172a; font-size: 17px; display: block;">{{ publicacion.autor || 'Usuario' }}</span>
+              <span style="font-size: 13px; color: #64748b;">
+                <span *ngIf="publicacion.autorUsername">&#64;{{ publicacion.autorUsername }} · </span>
+                {{ publicacion.createdAt | tiempoRelativo }}
+              </span>
+            </div>
           </div>
-          <div style="min-width: 0;">
-            <span class="texto-ajustado" style="font-weight: 800; color: #0f172a; font-size: 17px; display: block;">{{ publicacion.autor || 'Usuario' }}</span>
-            <span style="font-size: 13px; color: #64748b;">
-              <span *ngIf="publicacion.autorUsername">&#64;{{ publicacion.autorUsername }} · </span>
-              {{ publicacion.createdAt | tiempoRelativo }}
-            </span>
-          </div>
+
+          <span
+            *ngIf="estaGuardada()"
+            style="background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 999px;">
+            🔖 Guardada
+          </span>
         </div>
 
         <h1 *ngIf="publicacion.titulo" class="texto-ajustado" style="margin: 0 0 12px 0; color: #0f172a; font-size: 24px; font-weight: 800; line-height: 1.3;">
@@ -79,14 +87,30 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
           <img [src]="publicacion.imagen" alt="Imagen de publicación" style="width: 100%; max-height: 580px; object-fit: contain; display: block; margin: 0 auto;">
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 14px;">
-          <button
-            (click)="darLike()"
-            [style.color]="usuarioDioLike() ? '#e11d48' : '#475569'"
-            [style.background]="usuarioDioLike() ? 'linear-gradient(180deg, #ffe4e6, #fecdd3)' : 'linear-gradient(180deg, #ffffff, #f1f5f9)'"
-            style="border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px;">
-            {{ usuarioDioLike() ? '❤️' : '🤍' }} Me gusta ({{ publicacion.likes?.length || 0 }})
-          </button>
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button
+              (click)="darLike()"
+              [style.color]="usuarioDioLike() ? '#e11d48' : '#475569'"
+              [style.background]="usuarioDioLike() ? 'linear-gradient(180deg, #ffe4e6, #fecdd3)' : 'linear-gradient(180deg, #ffffff, #f1f5f9)'"
+              style="border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+              {{ usuarioDioLike() ? '❤️' : '🤍' }} Me gusta ({{ publicacion.likes?.length || 0 }})
+            </button>
+
+            <button
+              (click)="toggleGuardar()"
+              [style.color]="estaGuardada() ? '#92400e' : '#334155'"
+              [style.background]="estaGuardada() ? 'linear-gradient(180deg, #fef3c7, #fde68a)' : 'linear-gradient(180deg, #ffffff, #f8fafc)'"
+              style="border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+              {{ estaGuardada() ? '🔖 Guardado' : '📑 Guardar' }} ({{ publicacion.guardadosPor?.length || 0 }})
+            </button>
+
+            <button
+              (click)="abrirCompartir()"
+              style="background: linear-gradient(180deg, #f0fdf4, #dcfce7); color: #15803d; border: 1px solid #86efac; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+              📤 Compartir ({{ publicacion.compartidos?.length || 0 }})
+            </button>
+          </div>
 
           <span style="font-size: 13px; font-weight: 700; color: #64748b;">
             💬 {{ totalComentarios }} {{ totalComentarios === 1 ? 'comentario' : 'comentarios' }}
@@ -208,12 +232,54 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
         </div>
       </div>
     </div>
+
+    <!-- Modal Compartir -->
+    <div *ngIf="mostrarModalCompartir" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 20px;">
+      <div style="background: #ffffff; border-radius: 18px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25); border: 1px solid #cbd5e1;">
+        <h3 style="margin: 0 0 6px 0; color: #0f172a; font-size: 18px; font-weight: 800;">Compartir publicación</h3>
+        <p style="margin: 0 0 16px 0; color: #64748b; font-size: 13px;">
+          Elegí el usuario al que querés compartir esta publicación
+        </p>
+
+        <div class="field-group" style="margin-bottom: 18px;">
+          <label class="field-label">Destinatario</label>
+          <select [(ngModel)]="destinatarioSeleccionadoId" class="field-input">
+            <option value="">Seleccioná un usuario...</option>
+            <option *ngFor="let u of destinatarios" [value]="u.id">
+              {{ u.nombreCompleto }} (&#64;{{ u.username }})
+            </option>
+          </select>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button
+            type="button"
+            (click)="cerrarCompartir()"
+            style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; font-weight: 600; font-size: 13px; cursor: pointer;">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmarCompartir()"
+            class="btn-primary"
+            [disabled]="compartiendo || !destinatarioSeleccionadoId"
+            style="padding: 9px 18px; font-size: 13px;">
+            {{ compartiendo ? 'Compartiendo...' : 'Enviar' }}
+          </button>
+        </div>
+      </div>
+    </div>
   `,
 })
 export class PublicacionDetalleComponent implements OnInit {
   publicacionId = '';
   publicacion: any = null;
   usuarioActual: any = null;
+  destinatarios: any[] = [];
+
+  mostrarModalCompartir = false;
+  destinatarioSeleccionadoId = '';
+  compartiendo = false;
 
   cargandoPublicacion = true;
   cargandoComentarios = true;
@@ -268,6 +334,84 @@ export class PublicacionDetalleComponent implements OnInit {
 
     this.cargarPublicacion();
     this.cargarComentariosIniciales();
+    this.cargarDestinatarios();
+  }
+
+  cargarDestinatarios() {
+    this.http.get<any[]>(`${environment.apiUrl}/publicaciones/destinatarios-compartir`).subscribe({
+      next: (lista) => {
+        this.destinatarios = lista || [];
+        this.cdr.detectChanges();
+      },
+      error: () => {},
+    });
+  }
+
+  estaGuardada(): boolean {
+    if (!this.publicacion) return false;
+    if (typeof this.publicacion?.guardadaPorMi === 'boolean') return this.publicacion.guardadaPorMi;
+    const uid = String(this.usuarioActual?.id || this.usuarioActual?._id || '');
+    return Array.isArray(this.publicacion?.guardadosPor) && this.publicacion.guardadosPor.map(String).includes(uid);
+  }
+
+  toggleGuardar() {
+    if (!this.publicacion) return;
+    const yaGuardada = this.estaGuardada();
+    const endpoint = yaGuardada ? 'quitar-guardado' : 'guardar';
+    this.http.post<any>(`${environment.apiUrl}/publicaciones/${this.publicacionId}/${endpoint}`, {}).subscribe({
+      next: (res) => {
+        if (res?.publicacion) {
+          this.publicacion.guardadosPor = res.publicacion.guardadosPor || [];
+          this.publicacion.guardadaPorMi = Boolean(res.guardada);
+        } else {
+          const uid = String(this.usuarioActual?.id || this.usuarioActual?._id || '');
+          const lista = Array.isArray(this.publicacion.guardadosPor) ? [...this.publicacion.guardadosPor] : [];
+          this.publicacion.guardadosPor = yaGuardada ? lista.filter((x) => String(x) !== uid) : [...lista, uid];
+          this.publicacion.guardadaPorMi = !yaGuardada;
+        }
+        this.mostrarToast(!yaGuardada ? 'Publicación guardada.' : 'Publicación quitada de guardados.');
+        this.cdr.detectChanges();
+      },
+      error: () => this.mostrarToast('No se pudo actualizar guardados.', 'error'),
+    });
+  }
+
+  abrirCompartir() {
+    this.mostrarModalCompartir = true;
+    this.destinatarioSeleccionadoId = '';
+    if (this.destinatarios.length === 0) {
+      this.cargarDestinatarios();
+    }
+  }
+
+  cerrarCompartir() {
+    this.mostrarModalCompartir = false;
+    this.destinatarioSeleccionadoId = '';
+    this.compartiendo = false;
+  }
+
+  confirmarCompartir() {
+    if (!this.destinatarioSeleccionadoId || this.compartiendo) return;
+    this.compartiendo = true;
+
+    this.http
+      .post<any>(`${environment.apiUrl}/publicaciones/${this.publicacionId}/compartir`, {
+        destinatarioId: this.destinatarioSeleccionadoId,
+      })
+      .subscribe({
+        next: (res) => {
+          if (res?.publicacion?.compartidos && this.publicacion) {
+            this.publicacion.compartidos = res.publicacion.compartidos;
+          }
+          this.cerrarCompartir();
+          this.mostrarToast(res?.message || '¡Publicación compartida!');
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.compartiendo = false;
+          this.mostrarToast('No se pudo compartir la publicación.', 'error');
+        },
+      });
   }
 
   mostrarToast(mensaje: string, tipo: 'success' | 'error' = 'success') {

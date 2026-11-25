@@ -102,7 +102,7 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
       </div>
 
       <!-- Barra de Ordenamiento -->
-      <div class="surface-card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding: 12px 18px; border-radius: 14px;">
+      <div class="surface-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; padding: 12px 18px; border-radius: 14px;">
         <span style="font-size: 14px; font-weight: 700; color: #334155;">
           Publicaciones ({{ publicaciones.length }} de {{ total }})
         </span>
@@ -111,6 +111,8 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
           <select [(ngModel)]="orden" (change)="cambiarOrden()" style="padding: 7px 12px; border-radius: 9px; border: 1.5px solid #cbd5e1; font-size: 13px; font-weight: 600; color: #1e293b; background: #f8fafc; cursor: pointer;">
             <option value="recientes">Más recientes</option>
             <option value="likes">Más Me gusta</option>
+            <option value="guardados">Más guardadas</option>
+            <option value="compartidos">Más compartidas</option>
           </select>
         </div>
       </div>
@@ -123,7 +125,7 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
 
       <!-- Tarjetas de publicaciones -->
       <div *ngFor="let pub of publicaciones" [appResaltarHover]="'#93c5fd'" class="surface-card" style="padding: 22px; margin-bottom: 18px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px;">
           <div
             (click)="irAPerfilAutor(pub)"
             style="display: flex; align-items: center; gap: 12px; min-width: 0; cursor: pointer;"
@@ -140,6 +142,12 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
               </span>
             </div>
           </div>
+
+          <span
+            *ngIf="estaGuardada(pub)"
+            style="background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; flex-shrink: 0;">
+            🔖 Guardada
+          </span>
         </div>
 
         <div (click)="verPublicacion(pub._id)" style="cursor: pointer;">
@@ -157,19 +165,33 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
         </div>
 
         <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 12px; gap: 10px; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <button
               (click)="darLike(pub._id)"
               [style.color]="usuarioDioLike(pub) ? '#e11d48' : '#475569'"
               [style.background]="usuarioDioLike(pub) ? 'linear-gradient(180deg, #ffe4e6, #fecdd3)' : 'linear-gradient(180deg, #ffffff, #f1f5f9)'"
-              style="border: 1px solid #cbd5e1; padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              style="border: 1px solid #cbd5e1; padding: 7px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px;">
               {{ usuarioDioLike(pub) ? '❤️' : '🤍' }} Me gusta ({{ pub.likes?.length || 0 }})
             </button>
 
             <button
+              (click)="toggleGuardar(pub)"
+              [style.color]="estaGuardada(pub) ? '#92400e' : '#334155'"
+              [style.background]="estaGuardada(pub) ? 'linear-gradient(180deg, #fef3c7, #fde68a)' : 'linear-gradient(180deg, #ffffff, #f8fafc)'"
+              style="border: 1px solid #cbd5e1; padding: 7px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              {{ estaGuardada(pub) ? '🔖 Guardado' : '📑 Guardar' }} ({{ pub.guardadosPor?.length || 0 }})
+            </button>
+
+            <button
+              (click)="abrirCompartir(pub)"
+              style="background: linear-gradient(180deg, #f0fdf4, #dcfce7); color: #15803d; border: 1px solid #86efac; padding: 7px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              📤 Compartir ({{ pub.compartidos?.length || 0 }})
+            </button>
+
+            <button
               (click)="verPublicacion(pub._id)"
-              style="background: linear-gradient(180deg, #eff6ff, #dbeafe); color: #1d4ed8; border: 1px solid #93c5fd; padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 13px;">
-              💬 Comentar / Ver grande
+              style="background: linear-gradient(180deg, #eff6ff, #dbeafe); color: #1d4ed8; border: 1px solid #93c5fd; padding: 7px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              💬 Comentar
             </button>
           </div>
 
@@ -200,11 +222,53 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
         Mostrando todas las publicaciones disponibles.
       </div>
     </div>
+
+    <!-- Modal para elegir usuario y compartir publicación -->
+    <div *ngIf="publicacionACompartir" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 20px;">
+      <div style="background: #ffffff; border-radius: 18px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25); border: 1px solid #cbd5e1;">
+        <h3 style="margin: 0 0 6px 0; color: #0f172a; font-size: 18px; font-weight: 800;">Compartir publicación</h3>
+        <p style="margin: 0 0 16px 0; color: #64748b; font-size: 13px;">
+          Elegí el usuario al que querés compartir "{{ publicacionACompartir.titulo }}"
+        </p>
+
+        <div class="field-group" style="margin-bottom: 18px;">
+          <label class="field-label">Destinatario</label>
+          <select [(ngModel)]="destinatarioSeleccionadoId" class="field-input">
+            <option value="">Seleccioná un usuario...</option>
+            <option *ngFor="let u of destinatarios" [value]="u.id">
+              {{ u.nombreCompleto }} (&#64;{{ u.username }})
+            </option>
+          </select>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button
+            type="button"
+            (click)="cerrarCompartir()"
+            style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; font-weight: 600; font-size: 13px; cursor: pointer;">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmarCompartir()"
+            class="btn-primary"
+            [disabled]="compartiendo || !destinatarioSeleccionadoId"
+            style="padding: 9px 18px; font-size: 13px;">
+            {{ compartiendo ? 'Compartiendo...' : 'Enviar' }}
+          </button>
+        </div>
+      </div>
+    </div>
   `,
 })
 export class PublicacionesComponent implements OnInit, OnDestroy {
   publicaciones: any[] = [];
   usuarioActual: any = null;
+  destinatarios: any[] = [];
+
+  publicacionACompartir: any = null;
+  destinatarioSeleccionadoId = '';
+  compartiendo = false;
 
   nuevoTitulo = '';
   nuevoTexto = '';
@@ -276,9 +340,20 @@ export class PublicacionesComponent implements OnInit, OnDestroy {
     }
     this.usuarioActual = JSON.parse(userJson);
     this.cargarPublicaciones(false);
+    this.cargarDestinatarios();
   }
 
   ngOnDestroy() {}
+
+  cargarDestinatarios() {
+    this.http.get<any[]>(`${environment.apiUrl}/publicaciones/destinatarios-compartir`).subscribe({
+      next: (lista) => {
+        this.destinatarios = lista || [];
+        this.cdr.detectChanges();
+      },
+      error: () => {},
+    });
+  }
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
@@ -357,6 +432,74 @@ export class PublicacionesComponent implements OnInit, OnDestroy {
   cambiarOrden() {
     this.page = 1;
     this.cargarPublicaciones(false);
+  }
+
+  estaGuardada(pub: any): boolean {
+    if (typeof pub?.guardadaPorMi === 'boolean') return pub.guardadaPorMi;
+    const uid = String(this.usuarioActual?.id || this.usuarioActual?._id || '');
+    return Array.isArray(pub?.guardadosPor) && pub.guardadosPor.map(String).includes(uid);
+  }
+
+  toggleGuardar(pub: any) {
+    const yaGuardada = this.estaGuardada(pub);
+    const endpoint = yaGuardada ? 'quitar-guardado' : 'guardar';
+    this.http.post<any>(`${environment.apiUrl}/publicaciones/${pub._id}/${endpoint}`, {}).subscribe({
+      next: (res) => {
+        if (res?.publicacion) {
+          pub.guardadosPor = res.publicacion.guardadosPor || [];
+          pub.guardadaPorMi = Boolean(res.guardada);
+        } else {
+          const uid = String(this.usuarioActual?.id || this.usuarioActual?._id || '');
+          const lista = Array.isArray(pub.guardadosPor) ? [...pub.guardadosPor] : [];
+          pub.guardadosPor = yaGuardada ? lista.filter((x) => String(x) !== uid) : [...lista, uid];
+          pub.guardadaPorMi = !yaGuardada;
+        }
+        this.mostrarToast(
+          !yaGuardada ? 'Publicación guardada.' : 'Publicación quitada de guardados.'
+        );
+        this.cdr.detectChanges();
+      },
+      error: () => this.mostrarToast('No se pudo actualizar guardados.', 'error'),
+    });
+  }
+
+  abrirCompartir(pub: any) {
+    this.publicacionACompartir = pub;
+    this.destinatarioSeleccionadoId = '';
+    if (this.destinatarios.length === 0) {
+      this.cargarDestinatarios();
+    }
+  }
+
+  cerrarCompartir() {
+    this.publicacionACompartir = null;
+    this.destinatarioSeleccionadoId = '';
+    this.compartiendo = false;
+  }
+
+  confirmarCompartir() {
+    if (!this.publicacionACompartir || !this.destinatarioSeleccionadoId || this.compartiendo) return;
+    this.compartiendo = true;
+    const pub = this.publicacionACompartir;
+
+    this.http
+      .post<any>(`${environment.apiUrl}/publicaciones/${pub._id}/compartir`, {
+        destinatarioId: this.destinatarioSeleccionadoId,
+      })
+      .subscribe({
+        next: (res) => {
+          if (res?.publicacion?.compartidos) {
+            pub.compartidos = res.publicacion.compartidos;
+          }
+          this.cerrarCompartir();
+          this.mostrarToast(res?.message || '¡Publicación compartida!');
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.compartiendo = false;
+          this.mostrarToast('No se pudo compartir la publicación.', 'error');
+        },
+      });
   }
 
   crearPublicacion() {

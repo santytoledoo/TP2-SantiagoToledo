@@ -30,6 +30,14 @@ import { SoloAdminDirective } from './directives/solo-admin.directive';
           Muro
         </a>
 
+        <a routerLink="/guardados" routerLinkActive="nav-active" style="text-decoration: none; color: #475569; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 10px; transition: all 0.2s;">
+          🔖 Guardados
+        </a>
+
+        <a routerLink="/compartidos" routerLinkActive="nav-active" style="text-decoration: none; color: #475569; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 10px; transition: all 0.2s;">
+          📤 Compartidos
+        </a>
+
         <!-- Opciones visibles SOLO para administradores -->
         <a *appSoloAdmin routerLink="/dashboard/usuarios" routerLinkActive="nav-active" style="text-decoration: none; color: #475569; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 10px; transition: all 0.2s;">
           🛡️ Usuarios
@@ -106,9 +114,9 @@ export class AppComponent implements OnInit {
   formatearTiempo(segundos: number): string {
     if (segundos >= 60) {
       const mins = Math.ceil(segundos / 60);
-      return `${mins} ${mins === 1 ? 'minuto' : 'minutos'}`;
+      return `${mins}${mins === 1 ? 'minuto' : 'minutos'}`;
     }
-    return `${segundos} ${segundos === 1 ? 'segundo' : 'segundos'}`;
+    return `${segundos}${segundos === 1 ? 'segundo' : 'segundos'}`;
   }
 
   obtenerUsuario(): any {
