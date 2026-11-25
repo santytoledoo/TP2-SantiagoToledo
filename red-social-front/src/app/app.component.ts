@@ -70,7 +70,7 @@ import { SoloAdminDirective } from './directives/solo-admin.directive';
           Tu sesión está por vencer
         </h3>
         <p style="margin: 0 0 22px 0; color: #475569; font-size: 14px; line-height: 1.55;">
-          Quedan <strong>{{ formatearTiempo((sesionService.segundosRestantes$ | async) ?? 0) }}</strong> antes de que finalice tu sesión. ¿Deseás extenderla?
+          Quedan <strong>{{ (sesionService.segundosRestantes$ | async) ?? 0 }} segundos</strong> antes de que finalice tu sesión. ¿Deseás extenderla?
         </p>
 
         <div style="display: flex; gap: 12px; justify-content: center;">
