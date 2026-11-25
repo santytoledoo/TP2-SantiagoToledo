@@ -47,7 +47,7 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
           <div *ngIf="!pub.autorFoto" style="width: 42px; height: 42px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">
             {{ (pub.autor || 'US').substring(0, 2).toUpperCase() }}
           </div>
-          <div style="min-width: 0; flex: 1; overflow-wrap: anywhere; word-break: break-word;">
+          <div style="min-width: 0; flex: 1; overflow-wrap: anywhere; word-break: break-all;">
             <span style="font-weight: 700; color: #0f172a; font-size: 15px; display: block;">{{ pub.autor || 'Usuario' }}</span>
             <span style="font-size: 12px; color: #64748b;">
               <span *ngIf="pub.autorUsername">&#64;{{ pub.autorUsername }} · </span>
@@ -56,11 +56,11 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
           </div>
         </div>
 
-        <div (click)="verPublicacion(pub._id)" style="cursor: pointer; min-width: 0; max-width: 100%;">
-          <h4 *ngIf="pub.titulo" style="margin: 0 0 8px 0; color: #0f172a; font-size: 18px; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; word-break: break-word; max-width: 100%;">
+        <div (click)="verPublicacion(pub._id)" style="cursor: pointer; min-width: 0; max-width: 100%; overflow: hidden;">
+          <h4 *ngIf="pub.titulo" style="margin: 0 0 8px 0; color: #0f172a; font-size: 18px; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; word-break: break-all; max-width: 100%;">
             {{ pub.titulo }}
           </h4>
-          <p style="margin: 0 0 14px 0; color: #334155; font-size: 15px; line-height: 1.55; overflow-wrap: anywhere; word-break: break-word; max-width: 100%;">
+          <p style="margin: 0 0 14px 0; color: #334155; font-size: 15px; line-height: 1.55; overflow-wrap: anywhere; word-break: break-all; max-width: 100%;">
             {{ pub.contenido }}
           </p>
           <div *ngIf="pub.imagen" style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
