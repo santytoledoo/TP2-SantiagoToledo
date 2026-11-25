@@ -58,8 +58,8 @@ export class SesionService {
     const payload = this.decodificarPayload(token);
     const ahoraMs = Date.now();
 
-    let expMs = ahoraMs + 900 * 1000;
-    let duracionTotalSeg = 900;
+    let expMs = ahoraMs + 180 * 1000;
+    let duracionTotalSeg = 180;
 
     if (payload?.exp) {
       expMs = payload.exp * 1000;
@@ -77,11 +77,11 @@ export class SesionService {
       return;
     }
 
-    // Si el token dura <= 2 min (ej. 1 min), avisa 25s antes; si dura 15 min, avisa 5 min antes
+    // Aviso 1 minuto (60s) antes de vencer cuando el token dura <= 3 min; si dura más, avisa 1 min antes o 5 min en tokens largos
     const margenAvisoMs =
-      duracionTotalSeg <= 120
-        ? Math.min(25 * 1000, Math.floor(duracionTotalSeg * 0.45 * 1000))
-        : 5 * 60 * 1000;
+      duracionTotalSeg <= 180
+        ? 60 * 1000
+        : Math.min(5 * 60 * 1000, Math.floor(msRestantesTotales * 0.5));
 
     const esperarParaAvisoMs = Math.max(0, msRestantesTotales - margenAvisoMs);
 

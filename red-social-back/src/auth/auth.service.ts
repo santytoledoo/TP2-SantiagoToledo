@@ -10,6 +10,8 @@ import { Model } from 'mongoose';
 import { Usuario } from '../usuarios/schemas/usuario.schema';
 import * as bcrypt from 'bcrypt';
 
+const EXPIRACION_TOKEN_SEGUNDOS = 180; // 3 minutos
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -42,7 +44,7 @@ export class AuthService {
       username: usuario.username,
       rol: usuario.rol || 'usuario',
     };
-    return this.jwtService.sign(payload, { expiresIn: 900 });
+    return this.jwtService.sign(payload, { expiresIn: EXPIRACION_TOKEN_SEGUNDOS });
   }
 
   private limpiarToken(rawToken?: string): string {
@@ -175,7 +177,7 @@ export class AuthService {
         rol: usuario.rol || 'usuario',
       };
 
-      const access_token = this.jwtService.sign(nuevoPayload, { expiresIn: 900 });
+      const access_token = this.jwtService.sign(nuevoPayload, { expiresIn: EXPIRACION_TOKEN_SEGUNDOS });
 
       return {
         access_token,
