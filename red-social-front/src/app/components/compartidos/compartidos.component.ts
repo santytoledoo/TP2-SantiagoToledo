@@ -41,23 +41,23 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
         </a>
       </div>
 
-      <div *ngFor="let pub of publicaciones" [appResaltarHover]="'#86efac'" class="surface-card" style="padding: 22px; margin-bottom: 18px; overflow: hidden;">
+      <div *ngFor="let pub of publicaciones" [appResaltarHover]="'#86efac'" class="surface-card" style="padding: 22px; margin-bottom: 18px; overflow: hidden; max-width: 100%; box-sizing: border-box;">
 
         <!-- Quién compartió la publicación -->
-        <div *ngIf="pub.compartidosConmigo?.length" class="texto-ajustado" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 8px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 700; margin-bottom: 14px;">
+        <div *ngIf="pub.compartidosConmigo?.length" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 8px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 700; margin-bottom: 14px; overflow-wrap: anywhere; word-break: break-word;">
           Compartido por:
           <span *ngFor="let c of pub.compartidosConmigo; let last = last">
             {{ c.deUsuarioNombre }}<span *ngIf="c.deUsuarioUsername"> (&#64;{{ c.deUsuarioUsername }})</span><span *ngIf="!last">, </span>
           </span>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px; min-width: 0;">
           <img *ngIf="pub.autorFoto" [src]="pub.autorFoto" alt="Avatar" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
           <div *ngIf="!pub.autorFoto" style="width: 42px; height: 42px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">
             {{ (pub.autor || 'US').substring(0, 2).toUpperCase() }}
           </div>
-          <div style="min-width: 0;">
-            <span class="texto-ajustado" style="font-weight: 700; color: #0f172a; font-size: 15px; display: block;">{{ pub.autor || 'Usuario' }}</span>
+          <div style="min-width: 0; flex: 1; overflow-wrap: anywhere; word-break: break-word;">
+            <span style="font-weight: 700; color: #0f172a; font-size: 15px; display: block;">{{ pub.autor || 'Usuario' }}</span>
             <span style="font-size: 12px; color: #64748b;">
               <span *ngIf="pub.autorUsername">&#64;{{ pub.autorUsername }} · </span>
               {{ pub.createdAt | tiempoRelativo }}
@@ -65,11 +65,11 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
           </div>
         </div>
 
-        <div (click)="verPublicacion(pub._id)" style="cursor: pointer;">
-          <h4 *ngIf="pub.titulo" class="texto-ajustado" style="margin: 0 0 8px 0; color: #0f172a; font-size: 18px; font-weight: 800; line-height: 1.35;">
+        <div (click)="verPublicacion(pub._id)" style="cursor: pointer; min-width: 0; max-width: 100%;">
+          <h4 *ngIf="pub.titulo" style="margin: 0 0 8px 0; color: #0f172a; font-size: 18px; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; word-break: break-word; max-width: 100%;">
             {{ pub.titulo }}
           </h4>
-          <p class="texto-ajustado" style="margin: 0 0 14px 0; color: #334155; font-size: 15px; line-height: 1.55;">
+          <p style="margin: 0 0 14px 0; color: #334155; font-size: 15px; line-height: 1.55; overflow-wrap: anywhere; word-break: break-word; max-width: 100%;">
             {{ pub.contenido }}
           </p>
           <div *ngIf="pub.imagen" style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
