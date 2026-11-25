@@ -19,25 +19,25 @@ import { environment } from '../../../environments/environment';
 
       <!-- Botón volver -->
       <div style="margin-bottom: 18px;">
-        <a routerLink="/publicaciones" style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; color: #1e293b; text-decoration: none; font-weight: 600; font-size: 13px; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);">
+        <a routerLink="/publicaciones" style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; background: linear-gradient(180deg, #ffffff, #f1f5f9); border: 1.5px solid #cbd5e1; border-radius: 11px; color: #1e293b; text-decoration: none; font-weight: 700; font-size: 13px; box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);">
           ← Volver a publicaciones
         </a>
       </div>
 
       <!-- Cargando publicación -->
-      <div *ngIf="cargandoPublicacion" style="background: #ffffff; padding: 48px; border-radius: 18px; border: 1px solid #e2e8f0; text-align: center; color: #64748b; font-weight: 600;">
+      <div *ngIf="cargandoPublicacion" class="surface-card" style="padding: 48px; text-align: center; color: #64748b; font-weight: 600;">
         Cargando publicación...
       </div>
 
       <!-- Publicación en grande -->
-      <div *ngIf="!cargandoPublicacion && publicacion" style="background: #ffffff; border: 1px solid #e2e8f0; padding: 28px; border-radius: 18px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05); margin-bottom: 24px;">
+      <div *ngIf="!cargandoPublicacion && publicacion" class="surface-card" style="padding: 28px; border-radius: 20px; margin-bottom: 24px;">
         <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 18px;">
-          <img *ngIf="publicacion.autorFoto" [src]="publicacion.autorFoto" alt="Avatar" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;">
-          <div *ngIf="!publicacion.autorFoto" style="width: 50px; height: 50px; background: #dbeafe; color: #1d4ed8; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+          <img *ngIf="publicacion.autorFoto" [src]="publicacion.autorFoto" alt="Avatar" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #cbd5e1; flex-shrink: 0;">
+          <div *ngIf="!publicacion.autorFoto" style="width: 52px; height: 52px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
             {{ (publicacion.autor || 'US').substring(0, 2).toUpperCase() }}
           </div>
-          <div>
-            <span style="font-weight: 800; color: #0f172a; font-size: 17px; display: block;">{{ publicacion.autor || 'Usuario' }}</span>
+          <div style="min-width: 0;">
+            <span class="texto-ajustado" style="font-weight: 800; color: #0f172a; font-size: 17px; display: block;">{{ publicacion.autor || 'Usuario' }}</span>
             <span style="font-size: 13px; color: #64748b;">
               <span *ngIf="publicacion.autorUsername">&#64;{{ publicacion.autorUsername }} · </span>
               {{ publicacion.createdAt | date:'dd/MM/yyyy HH:mm' }}
@@ -45,47 +45,47 @@ import { environment } from '../../../environments/environment';
           </div>
         </div>
 
-        <h1 *ngIf="publicacion.titulo" style="margin: 0 0 12px 0; color: #0f172a; font-size: 24px; font-weight: 800; line-height: 1.3;">
+        <h1 *ngIf="publicacion.titulo" class="texto-ajustado" style="margin: 0 0 12px 0; color: #0f172a; font-size: 24px; font-weight: 800; line-height: 1.3;">
           {{ publicacion.titulo }}
         </h1>
 
-        <p style="color: #1e293b; margin: 0 0 20px 0; font-size: 16px; line-height: 1.65; word-break: break-word; white-space: pre-line;">
+        <p class="texto-ajustado" style="color: #1e293b; margin: 0 0 20px 0; font-size: 16px; line-height: 1.65; white-space: pre-line;">
           {{ publicacion.contenido }}
         </p>
 
-        <div *ngIf="publicacion.imagen" style="margin-bottom: 20px; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc;">
+        <div *ngIf="publicacion.imagen" style="margin-bottom: 20px; border-radius: 14px; overflow: hidden; border: 1px solid #cbd5e1; background: #f8fafc; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);">
           <img [src]="publicacion.imagen" alt="Imagen de publicación" style="width: 100%; max-height: 580px; object-fit: contain; display: block; margin: 0 auto;">
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 14px;">
           <button
             (click)="darLike()"
             [style.color]="usuarioDioLike() ? '#e11d48' : '#475569'"
-            [style.background]="usuarioDioLike() ? '#ffe4e6' : '#f8fafc'"
-            style="border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+            [style.background]="usuarioDioLike() ? 'linear-gradient(180deg, #ffe4e6, #fecdd3)' : 'linear-gradient(180deg, #ffffff, #f1f5f9)'"
+            style="border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px;">
             {{ usuarioDioLike() ? '❤️' : '🤍' }} Me gusta ({{ publicacion.likes?.length || 0 }})
           </button>
 
-          <span style="font-size: 13px; font-weight: 600; color: #64748b;">
+          <span style="font-size: 13px; font-weight: 700; color: #64748b;">
             💬 {{ totalComentarios }} {{ totalComentarios === 1 ? 'comentario' : 'comentarios' }}
           </span>
         </div>
       </div>
 
       <!-- Sección de Comentarios -->
-      <div *ngIf="!cargandoPublicacion && publicacion" style="background: #ffffff; border: 1px solid #e2e8f0; padding: 24px; border-radius: 18px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);">
+      <div *ngIf="!cargandoPublicacion && publicacion" class="surface-card" style="padding: 24px; border-radius: 20px;">
         <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 17px; font-weight: 800;">
           Comentarios ({{ totalComentarios }})
         </h3>
 
         <!-- Caja para escribir comentario -->
-        <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;">
+        <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
           <img *ngIf="usuarioActual?.fotoPerfil" [src]="usuarioActual.fotoPerfil" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
           <div *ngIf="!usuarioActual?.fotoPerfil" style="width: 38px; height: 38px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
             {{ (usuarioActual?.nombre || 'U').substring(0, 2).toUpperCase() }}
           </div>
 
-          <div style="flex: 1;">
+          <div style="flex: 1; min-width: 0;">
             <textarea
               rows="2"
               class="field-input"
@@ -107,25 +107,25 @@ import { environment } from '../../../environments/environment';
         </div>
 
         <!-- Estado sin comentarios -->
-        <div *ngIf="!cargandoComentarios && comentarios.length === 0" style="text-align: center; padding: 28px 16px; color: #64748b; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+        <div *ngIf="!cargandoComentarios && comentarios.length === 0" style="text-align: center; padding: 28px 16px; color: #64748b; background: #f8fafc; border-radius: 14px; border: 1px dashed #cbd5e1;">
           <p style="margin: 0; font-size: 14px; font-weight: 600;">Todavía no hay comentarios en esta publicación.</p>
           <p style="margin: 4px 0 0 0; font-size: 13px;">¡Sé el primero en opinar!</p>
         </div>
 
         <!-- Listado ordenado uno debajo del otro -->
         <div style="display: flex; flex-direction: column; gap: 14px;">
-          <div *ngFor="let com of comentarios" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px;">
+          <div *ngFor="let com of comentarios" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #dbe3ee; border-radius: 14px; padding: 16px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <img *ngIf="com.autorFoto" [src]="com.autorFoto" alt="Avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover;">
-                <div *ngIf="!com.autorFoto" style="width: 34px; height: 34px; border-radius: 50%; background: #e0e7ff; color: #3730a3; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center;">
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                <img *ngIf="com.autorFoto" [src]="com.autorFoto" alt="Avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                <div *ngIf="!com.autorFoto" style="width: 34px; height: 34px; border-radius: 50%; background: #e0e7ff; color: #3730a3; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                   {{ (com.autor || 'US').substring(0, 2).toUpperCase() }}
                 </div>
-                <div>
+                <div style="min-width: 0;">
                   <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <span style="font-weight: 700; color: #0f172a; font-size: 14px;">{{ com.autor }}</span>
+                    <span class="texto-ajustado" style="font-weight: 700; color: #0f172a; font-size: 14px;">{{ com.autor }}</span>
                     <span *ngIf="com.autorUsername" style="font-size: 12px; color: #64748b;">&#64;{{ com.autorUsername }}</span>
-                    <span *ngIf="com.modificado" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px;">
+                    <span *ngIf="com.modificado" style="background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px;">
                       editado
                     </span>
                   </div>
@@ -137,13 +137,13 @@ import { environment } from '../../../environments/environment';
               <button
                 *ngIf="esAutorComentario(com) && editandoComentarioId !== com._id"
                 (click)="iniciarEdicion(com)"
-                style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 10px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0;">
                 ✏️ Editar
               </button>
             </div>
 
             <!-- Modo lectura -->
-            <p *ngIf="editandoComentarioId !== com._id" style="margin: 0; color: #1e293b; font-size: 14px; line-height: 1.5; word-break: break-word; white-space: pre-line;">
+            <p *ngIf="editandoComentarioId !== com._id" class="texto-ajustado" style="margin: 0; color: #1e293b; font-size: 14px; line-height: 1.5; white-space: pre-line;">
               {{ com.mensaje }}
             </p>
 
@@ -181,7 +181,7 @@ import { environment } from '../../../environments/environment';
             type="button"
             (click)="cargarMasComentarios()"
             [disabled]="cargandoMas"
-            style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 10px 22px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;">
+            style="background: linear-gradient(180deg, #eff6ff, #dbeafe); color: #1d4ed8; border: 1px solid #93c5fd; padding: 10px 22px; border-radius: 11px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 8px rgba(37, 99, 235, 0.1);">
             {{ cargandoMas ? 'Cargando...' : 'Cargar más comentarios' }}
           </button>
         </div>

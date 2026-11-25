@@ -19,14 +19,14 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
       </div>
 
       <!-- Formulario de nueva publicación -->
-      <div style="background: #ffffff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05); margin-bottom: 24px; border: 1px solid #e2e8f0;">
+      <div class="surface-card" style="padding: 24px; margin-bottom: 24px;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-          <img *ngIf="usuarioActual?.fotoPerfil" [src]="usuarioActual.fotoPerfil" alt="Avatar" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover;">
-          <div *ngIf="!usuarioActual?.fotoPerfil" style="width: 42px; height: 42px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-weight: 700; display: flex; align-items: center; justify-content: center;">
+          <img *ngIf="usuarioActual?.fotoPerfil" [src]="usuarioActual.fotoPerfil" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #dbeafe;">
+          <div *ngIf="!usuarioActual?.fotoPerfil" style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; font-weight: 800; display: flex; align-items: center; justify-content: center;">
             {{ (usuarioActual?.nombre || 'U').substring(0, 2).toUpperCase() }}
           </div>
           <div>
-            <h3 style="margin: 0; color: #0f172a; font-size: 16px; font-weight: 700;">Crear nueva publicación</h3>
+            <h3 style="margin: 0; color: #0f172a; font-size: 16px; font-weight: 800;">Crear nueva publicación</h3>
             <span style="font-size: 12px; color: #64748b;">Publicando como {{ usuarioActual?.nombre }} {{ usuarioActual?.apellido }}</span>
           </div>
         </div>
@@ -66,17 +66,17 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         </div>
 
         <!-- Vista previa de imagen seleccionada -->
-        <div *ngIf="nuevaImagen" style="position: relative; margin-bottom: 14px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+        <div *ngIf="nuevaImagen" style="position: relative; margin-bottom: 14px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);">
           <img [src]="nuevaImagen" alt="Vista previa" style="width: 100%; max-height: 280px; object-fit: cover; display: block;">
-          <button type="button" (click)="nuevaImagen = ''" style="position: absolute; top: 10px; right: 10px; background: rgba(15, 23, 42, 0.8); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
+          <button type="button" (click)="nuevaImagen = ''" style="position: absolute; top: 10px; right: 10px; background: rgba(15, 23, 42, 0.85); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
             ✕ Quitar foto
           </button>
         </div>
 
         <span class="error-text" *ngIf="errorImagen" style="margin-bottom: 10px;">{{ errorImagen }}</span>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #f1f5f9;">
-          <label style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #f1f5f9; color: #334155; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+          <label style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: linear-gradient(180deg, #f8fafc, #e2e8f0); color: #334155; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">
             📷 Agregar foto
             <input type="file" accept="image/*" (change)="onSeleccionarImagen($event)" style="display: none;">
           </label>
@@ -92,13 +92,13 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
       </div>
 
       <!-- Barra de Ordenamiento -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; background: #ffffff; padding: 12px 18px; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <div class="surface-card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding: 12px 18px; border-radius: 14px;">
         <span style="font-size: 14px; font-weight: 700; color: #334155;">
           Publicaciones ({{ total }})
         </span>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 13px; color: #64748b;">Ordenar por:</span>
-          <select [(ngModel)]="orden" (change)="cambiarOrden()" style="padding: 7px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600; color: #1e293b; background: #f8fafc; cursor: pointer;">
+          <select [(ngModel)]="orden" (change)="cambiarOrden()" style="padding: 7px 12px; border-radius: 9px; border: 1.5px solid #cbd5e1; font-size: 13px; font-weight: 600; color: #1e293b; background: #f8fafc; cursor: pointer;">
             <option value="recientes">Más recientes</option>
             <option value="likes">Más Me gusta</option>
           </select>
@@ -106,21 +106,21 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
       </div>
 
       <!-- Estado vacío -->
-      <div *ngIf="!cargando && publicaciones.length === 0" style="text-align: center; color: #64748b; padding: 48px 20px; background: #ffffff; border-radius: 16px; border: 1px dashed #cbd5e1;">
-        <p style="margin: 0; font-size: 16px; font-weight: 600;">No hay publicaciones todavía</p>
+      <div *ngIf="!cargando && publicaciones.length === 0" class="surface-card" style="text-align: center; color: #64748b; padding: 48px 20px; border-style: dashed;">
+        <p style="margin: 0; font-size: 16px; font-weight: 700; color: #334155;">No hay publicaciones todavía</p>
         <p style="margin: 6px 0 0 0; font-size: 13px;">¡Sé el primero en compartir algo con la comunidad!</p>
       </div>
 
       <!-- Tarjetas de publicaciones -->
-      <div *ngFor="let pub of publicaciones" style="background: #ffffff; border: 1px solid #e2e8f0; padding: 22px; border-radius: 16px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);">
+      <div *ngFor="let pub of publicaciones" class="surface-card surface-card-hover" style="padding: 22px; margin-bottom: 18px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <img *ngIf="pub.autorFoto" [src]="pub.autorFoto" alt="Avatar" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover;">
-            <div *ngIf="!pub.autorFoto" style="width: 42px; height: 42px; background: #e0e7ff; color: #3730a3; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <img *ngIf="pub.autorFoto" [src]="pub.autorFoto" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid #e2e8f0;">
+            <div *ngIf="!pub.autorFoto" style="width: 44px; height: 44px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #3730a3; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">
               {{ (pub.autor || 'US').substring(0, 2).toUpperCase() }}
             </div>
-            <div>
-              <span style="font-weight: 700; color: #0f172a; font-size: 15px; display: block;">{{ pub.autor || 'Usuario' }}</span>
+            <div style="min-width: 0;">
+              <span class="texto-ajustado" style="font-weight: 700; color: #0f172a; font-size: 15px; display: block;">{{ pub.autor || 'Usuario' }}</span>
               <span style="font-size: 12px; color: #64748b;">
                 <span *ngIf="pub.autorUsername">&#64;{{ pub.autorUsername }} · </span>
                 {{ pub.createdAt | date:'dd/MM/yyyy HH:mm' }}
@@ -131,32 +131,32 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
 
         <!-- Contenido clickeable para abrir la publicación en grande -->
         <div (click)="verPublicacion(pub._id)" style="cursor: pointer;">
-          <h4 *ngIf="pub.titulo" style="margin: 0 0 8px 0; color: #0f172a; font-size: 18px; font-weight: 700;">
+          <h4 *ngIf="pub.titulo" class="texto-ajustado" style="margin: 0 0 8px 0; color: #0f172a; font-size: 18px; font-weight: 800; line-height: 1.35;">
             {{ pub.titulo }}
           </h4>
 
-          <p style="color: #334155; margin: 0 0 14px 0; font-size: 15px; line-height: 1.55; word-break: break-word;">
+          <p class="texto-ajustado" style="color: #334155; margin: 0 0 14px 0; font-size: 15px; line-height: 1.55;">
             {{ pub.contenido }}
           </p>
 
-          <div *ngIf="pub.imagen" style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9;">
+          <div *ngIf="pub.imagen" style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);">
             <img [src]="pub.imagen" alt="Imagen de publicación" style="width: 100%; max-height: 420px; object-fit: cover; display: block;">
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 12px; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 12px; gap: 10px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <button
               (click)="darLike(pub._id)"
               [style.color]="usuarioDioLike(pub) ? '#e11d48' : '#475569'"
-              [style.background]="usuarioDioLike(pub) ? '#ffe4e6' : '#f8fafc'"
-              style="border: 1px solid #e2e8f0; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              [style.background]="usuarioDioLike(pub) ? 'linear-gradient(180deg, #ffe4e6, #fecdd3)' : 'linear-gradient(180deg, #ffffff, #f1f5f9)'"
+              style="border: 1px solid #cbd5e1; padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px; box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);">
               {{ usuarioDioLike(pub) ? '❤️' : '🤍' }} Me gusta ({{ pub.likes?.length || 0 }})
             </button>
 
             <button
               (click)="verPublicacion(pub._id)"
-              style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              style="background: linear-gradient(180deg, #eff6ff, #dbeafe); color: #1d4ed8; border: 1px solid #93c5fd; padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 13px; box-shadow: 0 2px 5px rgba(37, 99, 235, 0.08);">
               💬 Comentar / Ver grande
             </button>
           </div>
@@ -184,7 +184,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         <button
           (click)="cambiarPagina(page - 1)"
           [disabled]="page <= 1"
-          style="padding: 9px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer;"
+          style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);"
           [style.opacity]="page <= 1 ? '0.5' : '1'">
           ← Anterior
         </button>
@@ -196,7 +196,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         <button
           (click)="cambiarPagina(page + 1)"
           [disabled]="page >= totalPages"
-          style="padding: 9px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer;"
+          style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);"
           [style.opacity]="page >= totalPages ? '0.5' : '1'">
           Siguiente →
         </button>

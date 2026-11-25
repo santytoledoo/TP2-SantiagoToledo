@@ -9,10 +9,12 @@ import { environment } from '../../environments/environment';
 })
 export class SesionService {
   private timerAviso: any = null;
-  private readonly TIEMPO_AVISO_MS = 1 * 30 * 1000; // 1 minutos
+  private intervaloCuentaRegresiva: any = null;
 
   mostrarModalExtension$ = new BehaviorSubject<boolean>(false);
   extendiendoSesion$ = new BehaviorSubject<boolean>(false);
+  segundosRestantes$ = new BehaviorSubject<number>(0);
+  mensajeSesion$ = new BehaviorSubject<{ texto: string; tipo: 'success' | 'error' } | null>(null);
 
   constructor(
     private http: HttpClient,
@@ -20,19 +22,93 @@ export class SesionService {
     private ngZone: NgZone
   ) {}
 
+  private decodificarPayload(token: string): any | null {
+    try {
+      const partes = token.split('.');
+      if (partes.length < 2) return null;
+      const base64 = partes[1].replace(/-/g, '+').replace(/_/g, '/');
+      const json = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  }
+
+  private mostrarMensaje(texto: string, tipo: 'success' | 'error' = 'success') {
+    this.mensajeSesion$.next({ texto, tipo });
+    setTimeout(() => {
+      this.mensajeSesion$.next(null);
+    }, 3200);
+  }
+
   iniciarTemporizador() {
     this.detenerTemporizador();
     const token = localStorage.getItem('token');
     if (!token) return;
 
+    const payload = this.decodificarPayload(token);
+    const ahoraMs = Date.now();
+
+    let expMs = ahoraMs + 60 * 1000;
+    let duracionTotalSeg = 60;
+
+    if (payload?.exp) {
+      expMs = payload.exp * 1000;
+      if (payload?.iat) {
+        duracionTotalSeg = Math.max(10, payload.exp - payload.iat);
+      } else {
+        duracionTotalSeg = Math.max(10, Math.round((expMs - ahoraMs) / 1000));
+      }
+    }
+
+    const msRestantesTotales = expMs - ahoraMs;
+    if (msRestantesTotales <= 1000) {
+      this.cerrarSesion();
+      return;
+    }
+
+    // Si el token dura <= 2 min (ej. 1 min), avisa 25s antes; si dura 15 min, avisa 5 min antes
+    const margenAvisoMs =
+      duracionTotalSeg <= 120
+        ? Math.min(25 * 1000, Math.floor(duracionTotalSeg * 0.45 * 1000))
+        : 5 * 60 * 1000;
+
+    const esperarParaAvisoMs = Math.max(0, msRestantesTotales - margenAvisoMs);
+
     this.ngZone.runOutsideAngular(() => {
       this.timerAviso = setTimeout(() => {
         this.ngZone.run(() => {
-          if (localStorage.getItem('token')) {
-            this.mostrarModalExtension$.next(true);
-          }
+          if (!localStorage.getItem('token')) return;
+          this.mostrarModalExtension$.next(true);
+          this.iniciarCuentaRegresiva(expMs);
         });
-      }, this.TIEMPO_AVISO_MS);
+      }, esperarParaAvisoMs);
+    });
+  }
+
+  private iniciarCuentaRegresiva(expMs: number) {
+    if (this.intervaloCuentaRegresiva) {
+      clearInterval(this.intervaloCuentaRegresiva);
+    }
+
+    const actualizar = () => {
+      const restantes = Math.max(0, Math.ceil((expMs - Date.now()) / 1000));
+      this.segundosRestantes$.next(restantes);
+      if (restantes <= 0) {
+        this.cerrarSesion('Tu sesión expiró. Iniciá sesión nuevamente.');
+      }
+    };
+
+    actualizar();
+    this.ngZone.runOutsideAngular(() => {
+      this.intervaloCuentaRegresiva = setInterval(() => {
+        this.ngZone.run(() => actualizar());
+      }, 1000);
     });
   }
 
@@ -40,6 +116,10 @@ export class SesionService {
     if (this.timerAviso) {
       clearTimeout(this.timerAviso);
       this.timerAviso = null;
+    }
+    if (this.intervaloCuentaRegresiva) {
+      clearInterval(this.intervaloCuentaRegresiva);
+      this.intervaloCuentaRegresiva = null;
     }
     this.mostrarModalExtension$.next(false);
   }
@@ -69,18 +149,22 @@ export class SesionService {
           }
           this.mostrarModalExtension$.next(false);
           this.iniciarTemporizador();
+          this.mostrarMensaje('¡Sesión extendida exitosamente!', 'success');
         },
         error: () => {
           this.extendiendoSesion$.next(false);
-          this.cerrarSesion();
+          this.cerrarSesion('No se pudo extender porque el token ya venció.');
         },
       });
   }
 
-  cerrarSesion() {
+  cerrarSesion(motivo?: string) {
     this.detenerTemporizador();
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
+    if (motivo) {
+      this.mostrarMensaje(motivo, 'error');
+    }
     this.router.navigate(['/login']);
   }
 }

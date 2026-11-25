@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { procesarImagenArchivo } from '../../utils/imagen.util';
@@ -9,68 +9,67 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
 @Component({
   selector: 'app-mi-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div style="max-width: 720px; margin: 28px auto; padding: 0 18px 60px 18px;">
 
-      <!-- Notificación flotante (sin alert) -->
+      <!-- Notificación flotante -->
       <div *ngIf="toastMensaje" class="toast-banner" [ngClass]="toastTipo === 'error' ? 'toast-error' : 'toast-success'">
         {{ toastMensaje }}
       </div>
 
       <!-- Tarjeta Principal de Perfil -->
-      <div style="background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06); border: 1px solid #e2e8f0; margin-bottom: 28px;">
+      <div class="surface-card" style="border-radius: 22px; overflow: hidden; margin-bottom: 28px;">
         
         <!-- Banner superior -->
-        <div style="height: 135px; background: linear-gradient(120deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%); position: relative;"></div>
+        <div style="height: 140px; background: linear-gradient(125deg, #0f172a 0%, #1e3a8a 52%, #2563eb 100%); position: relative;"></div>
 
         <div style="padding: 0 28px 28px 28px;">
-          <!-- Fila de Avatar + Botón Editar -->
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: -52px; margin-bottom: 16px; gap: 16px; flex-wrap: wrap;">
+          <!-- Fila de Avatar + Botón Editar (solo se muestra cuando NO está editando) -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: -54px; margin-bottom: 16px; gap: 16px; flex-wrap: wrap;">
             
             <!-- Avatar interactivo con botón de cámara -->
-            <div style="position: relative; width: 104px; height: 104px;">
-              <div style="width: 104px; height: 104px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #ffffff; font-size: 36px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 4px solid #ffffff; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);">
+            <div style="position: relative; width: 108px; height: 108px;">
+              <div style="width: 108px; height: 108px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #ffffff; font-size: 36px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 4px solid #ffffff; box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);">
                 <img *ngIf="avatarMostrado" [src]="avatarMostrado" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover;">
                 <span *ngIf="!avatarMostrado">{{ iniciales }}</span>
               </div>
 
               <!-- Acceso directo para cambiar foto desde el avatar -->
-              <label title="Cambiar foto de perfil" style="position: absolute; bottom: 2px; right: 2px; width: 32px; height: 32px; border-radius: 50%; background: #0f172a; color: #ffffff; border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+              <label title="Cambiar foto de perfil" style="position: absolute; bottom: 2px; right: 2px; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #1e293b, #0f172a); color: #ffffff; border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.25);">
                 📷
                 <input type="file" accept="image/*" (change)="onCambioRapidoFoto($event)" style="display: none;">
               </label>
             </div>
 
             <button
+              *ngIf="!editando"
               type="button"
               (click)="toggleEditar()"
-              [style.background]="editando ? '#f1f5f9' : '#ffffff'"
-              [style.color]="editando ? '#475569' : '#0f172a'"
-              style="border: 1.5px solid #cbd5e1; padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-              {{ editando ? 'Cancelar edición' : 'Editar perfil' }}
+              style="background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%); color: #0f172a; border: 1.5px solid #cbd5e1; padding: 9px 20px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);">
+              ✏️ Editar perfil
             </button>
           </div>
 
-          <!-- MODO LECTURA (Información limpia y social) -->
+          <!-- MODO LECTURA -->
           <div *ngIf="!editando">
             <div style="margin-bottom: 12px;">
-              <h1 style="margin: 0; color: #0f172a; font-size: 24px; font-weight: 800; letter-spacing: -0.4px;">
+              <h1 class="texto-ajustado" style="margin: 0; color: #0f172a; font-size: 24px; font-weight: 800; letter-spacing: -0.4px;">
                 {{ usuario?.nombre }} {{ usuario?.apellido }}
               </h1>
-              <span style="color: #64748b; font-size: 14px; font-weight: 500;">
+              <span class="texto-ajustado" style="color: #64748b; font-size: 14px; font-weight: 500;">
                 &#64;{{ usuario?.username }}
               </span>
             </div>
 
-            <p *ngIf="usuario?.descripcion" style="margin: 0 0 16px 0; color: #1e293b; font-size: 15px; line-height: 1.55;">
+            <p *ngIf="usuario?.descripcion" class="texto-ajustado" style="margin: 0 0 16px 0; color: #1e293b; font-size: 15px; line-height: 1.55;">
               {{ usuario.descripcion }}
             </p>
             <p *ngIf="!usuario?.descripcion" style="margin: 0 0 16px 0; color: #94a3b8; font-size: 14px; font-style: italic;">
               Sin biografía todavía. Hacé clic en "Editar perfil" para contar algo sobre vos.
             </p>
 
-            <!-- Datos de contacto y fecha en línea -->
+            <!-- Datos de contacto y fecha -->
             <div style="display: flex; flex-wrap: wrap; gap: 18px; color: #475569; font-size: 13px; margin-bottom: 18px;">
               <span style="display: inline-flex; align-items: center; gap: 6px;">
                 ✉️ {{ usuario?.correo }}
@@ -81,19 +80,19 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
             </div>
 
             <!-- Barra de métricas sociales -->
-            <div style="display: flex; gap: 24px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
-              <div>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 12px;">
                 <span style="font-weight: 800; color: #0f172a; font-size: 16px;">{{ totalMisPublis }}</span>
                 <span style="color: #64748b; font-size: 13px; margin-left: 5px;">Publicaciones</span>
               </div>
-              <div>
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 12px;">
                 <span style="font-weight: 800; color: #0f172a; font-size: 16px;">{{ totalLikesRecibidos }}</span>
                 <span style="color: #64748b; font-size: 13px; margin-left: 5px;">Me gusta recibidos</span>
               </div>
             </div>
           </div>
 
-          <!-- MODO EDICIÓN -->
+          <!-- MODO EDICIÓN (con un único botón Cancelar al final) -->
           <form *ngIf="editando" (ngSubmit)="guardarPerfil()" style="margin-top: 8px; padding-top: 18px; border-top: 1px solid #e2e8f0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
               <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #0f172a;">Editar información del perfil</h3>
@@ -164,7 +163,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px;">
-              <button type="button" (click)="toggleEditar()" style="padding: 10px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; font-weight: 600; font-size: 14px; cursor: pointer;">
+              <button type="button" (click)="toggleEditar()" style="padding: 10px 18px; border-radius: 10px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #334155; font-weight: 600; font-size: 14px; cursor: pointer;">
                 Cancelar
               </button>
               <button type="submit" class="btn-primary" style="padding: 10px 24px; font-size: 14px;" [disabled]="guardando || !formularioEditValido">
@@ -180,12 +179,12 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         <h2 style="margin: 0; color: #0f172a; font-size: 19px; font-weight: 800;">
           Mis publicaciones
         </h2>
-        <span style="background: #dbeafe; color: #1d4ed8; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+        <span style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 999px; border: 1px solid #93c5fd;">
           {{ totalMisPublis }} {{ totalMisPublis === 1 ? 'publicación' : 'publicaciones' }}
         </span>
       </div>
 
-      <div *ngIf="misPublicaciones.length === 0" style="text-align: center; color: #64748b; padding: 44px 20px; background: #ffffff; border-radius: 18px; border: 1px dashed #cbd5e1;">
+      <div *ngIf="misPublicaciones.length === 0" class="surface-card" style="text-align: center; color: #64748b; padding: 44px 20px; border-style: dashed;">
         <p style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #334155;">Todavía no publicaste nada</p>
         <p style="margin: 0 0 18px 0; font-size: 13px;">Cuando compartas algo en el muro, va a aparecer acá.</p>
         <a routerLink="/publicaciones" class="btn-primary" style="display: inline-block; text-decoration: none; font-size: 13px; padding: 10px 20px;">
@@ -193,7 +192,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         </a>
       </div>
 
-      <div *ngFor="let pub of misPublicaciones" style="background: #ffffff; border: 1px solid #e2e8f0; padding: 22px; border-radius: 18px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);">
+      <div *ngFor="let pub of misPublicaciones" class="surface-card surface-card-hover" style="padding: 22px; margin-bottom: 16px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
           <div style="display: flex; align-items: center; gap: 11px;">
             <img *ngIf="usuario?.fotoPerfil" [src]="usuario.fotoPerfil" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">
@@ -211,15 +210,15 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
           </div>
         </div>
 
-        <h4 *ngIf="pub.titulo" style="margin: 0 0 8px 0; color: #0f172a; font-size: 17px; font-weight: 700;">
+        <h4 *ngIf="pub.titulo" class="texto-ajustado" style="margin: 0 0 8px 0; color: #0f172a; font-size: 17px; font-weight: 700;">
           {{ pub.titulo }}
         </h4>
 
-        <p style="color: #334155; margin: 0 0 14px 0; font-size: 14.5px; line-height: 1.55; word-break: break-word;">
+        <p class="texto-ajustado" style="color: #334155; margin: 0 0 14px 0; font-size: 14.5px; line-height: 1.55;">
           {{ pub.contenido }}
         </p>
 
-        <div *ngIf="pub.imagen" style="margin-bottom: 14px; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9;">
+        <div *ngIf="pub.imagen" style="margin-bottom: 14px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
           <img [src]="pub.imagen" alt="Imagen de la publicación" style="width: 100%; max-height: 380px; object-fit: cover; display: block;">
         </div>
 
@@ -228,7 +227,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
             (click)="darLike(pub._id)"
             [style.color]="usuarioDioLike(pub) ? '#e11d48' : '#475569'"
             [style.background]="usuarioDioLike(pub) ? '#ffe4e6' : '#f8fafc'"
-            style="border: 1px solid #e2e8f0; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+            style="border: 1px solid #e2e8f0; padding: 6px 14px; border-radius: 9px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
             {{ usuarioDioLike(pub) ? '❤️' : '🤍' }} {{ pub.likes?.length || 0 }} Me gusta
           </button>
 
@@ -251,11 +250,11 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
 
       <!-- Paginación -->
       <div *ngIf="totalPages > 1" style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 22px;">
-        <button (click)="cambiarPagina(page - 1)" [disabled]="page <= 1" [style.opacity]="page <= 1 ? '0.5' : '1'" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; font-weight: 600; font-size: 13px; cursor: pointer;">
+        <button (click)="cambiarPagina(page - 1)" [disabled]="page <= 1" [style.opacity]="page <= 1 ? '0.5' : '1'" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);">
           ← Anterior
         </button>
         <span style="font-size: 13px; font-weight: 600; color: #475569;">Página {{ page }} de {{ totalPages }}</span>
-        <button (click)="cambiarPagina(page + 1)" [disabled]="page >= totalPages" [style.opacity]="page >= totalPages ? '0.5' : '1'" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; font-weight: 600; font-size: 13px; cursor: pointer;">
+        <button (click)="cambiarPagina(page + 1)" [disabled]="page >= totalPages" [style.opacity]="page >= totalPages ? '0.5' : '1'" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);">
           Siguiente →
         </button>
       </div>
@@ -395,7 +394,6 @@ export class MiPerfilComponent implements OnInit {
     }
   }
 
-  // Cambio rápido de foto tocando el ícono de cámara sobre el avatar
   async onCambioRapidoFoto(event: any) {
     const file: File = event.target?.files?.[0];
     if (!file) return;
