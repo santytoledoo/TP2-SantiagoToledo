@@ -31,16 +31,25 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
           </div>
         </div>
 
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom: 12px;">
           <input
             type="text"
             class="field-input"
-            [class.input-error]="tocadoTitulo && errorTitulo"
+            [class.input-error]="(tocadoTitulo && errorTitulo) || esTituloExcedido"
             [(ngModel)]="nuevoTitulo"
             (input)="tocadoTitulo = true"
             (blur)="tocadoTitulo = true"
-            placeholder="Título de la publicación *">
-          <span class="error-text" *ngIf="tocadoTitulo && errorTitulo">{{ errorTitulo }}</span>
+            placeholder="Título de la publicación (máximo 80 caracteres) *">
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 12px;">
+            <span class="error-text" style="margin: 0;" *ngIf="tocadoTitulo && errorTitulo">
+              {{ errorTitulo }}
+            </span>
+            <span *ngIf="!(tocadoTitulo && errorTitulo)"></span>
+            <span [style.color]="esTituloExcedido ? '#dc2626' : '#64748b'" style="font-weight: 600;">
+              {{ caracteresRestantesTitulo }} caracteres restantes
+            </span>
+          </div>
         </div>
 
         <div class="field-group" style="margin-bottom: 10px;">
@@ -85,7 +94,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
             (click)="crearPublicacion()"
             class="btn-primary"
             style="padding: 10px 22px; font-size: 14px;"
-            [disabled]="publicando || !!errorTitulo || !!errorContenido || esExcedido">
+            [disabled]="publicando || !!errorTitulo || !!errorContenido || esExcedido || esTituloExcedido">
             {{ publicando ? 'Publicando...' : 'Publicar' }}
           </button>
         </div>
@@ -211,6 +220,7 @@ export class PublicacionesComponent implements OnInit {
   nuevoTitulo = '';
   nuevoTexto = '';
   nuevaImagen = '';
+  maxCaracteresTitulo = 80;
   maxCaracteres = 250;
 
   tocadoTitulo = false;
@@ -239,8 +249,16 @@ export class PublicacionesComponent implements OnInit {
     const val = this.nuevoTitulo.trim();
     if (!val) return 'El título es obligatorio.';
     if (val.length < 3) return 'El título debe tener al menos 3 caracteres.';
-    if (val.length > 80) return 'El título no puede superar los 80 caracteres.';
+    if (this.esTituloExcedido) return 'Superaste el límite máximo de 80 caracteres.';
     return '';
+  }
+
+  get caracteresRestantesTitulo(): number {
+    return this.maxCaracteresTitulo - (this.nuevoTitulo ? this.nuevoTitulo.length : 0);
+  }
+
+  get esTituloExcedido(): boolean {
+    return (this.nuevoTitulo ? this.nuevoTitulo.length : 0) > this.maxCaracteresTitulo;
   }
 
   get errorContenido(): string {
@@ -327,7 +345,7 @@ export class PublicacionesComponent implements OnInit {
   crearPublicacion() {
     this.tocadoTitulo = true;
     this.tocadoContenido = true;
-    if (this.errorTitulo || this.errorContenido || this.esExcedido) return;
+    if (this.errorTitulo || this.errorContenido || this.esExcedido || this.esTituloExcedido) return;
 
     this.publicando = true;
     const nombreCompleto = `${this.usuarioActual?.nombre || ''} ${this.usuarioActual?.apellido || ''}`.trim();
