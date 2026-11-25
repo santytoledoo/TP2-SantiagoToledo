@@ -47,7 +47,7 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
       </div>
 
       <!-- Cargando publicación -->
-      <div *ngIf="cargandoPublicacion" class="surface-card" style="padding: 48px; text-align: center; color: #64748b; font-weight: 600;">
+      <div *ngIf="cargandoPublicacion" class="surface-card" style="padding: 48px; text-align: center; color: #cbd5e1; font-weight: 600;">
         Cargando publicación...
       </div>
 
@@ -60,8 +60,8 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
               {{ (publicacion.autor || 'US').substring(0, 2).toUpperCase() }}
             </div>
             <div style="min-width: 0;">
-              <span class="texto-ajustado" style="font-weight: 800; color: #0f172a; font-size: 17px; display: block;">{{ publicacion.autor || 'Usuario' }}</span>
-              <span style="font-size: 13px; color: #64748b;">
+              <span class="texto-ajustado" style="font-weight: 800; color: #f8fafc; font-size: 17px; display: block;">{{ publicacion.autor || 'Usuario' }}</span>
+              <span style="font-size: 13px; color: #cbd5e1;">
                 <span *ngIf="publicacion.autorUsername">&#64;{{ publicacion.autorUsername }} · </span>
                 {{ publicacion.createdAt | tiempoRelativo }}
               </span>
@@ -75,23 +75,23 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
           </span>
         </div>
 
-        <h1 *ngIf="publicacion.titulo" class="texto-ajustado" style="margin: 0 0 12px 0; color: #0f172a; font-size: 24px; font-weight: 800; line-height: 1.3;">
+        <h1 *ngIf="publicacion.titulo" class="texto-ajustado" style="margin: 0 0 12px 0; color: #f8fafc; font-size: 24px; font-weight: 800; line-height: 1.3;">
           {{ publicacion.titulo }}
         </h1>
 
-        <p class="texto-ajustado" style="color: #1e293b; margin: 0 0 20px 0; font-size: 16px; line-height: 1.65; white-space: pre-line;">
+        <p class="texto-ajustado" style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px; line-height: 1.65; white-space: pre-line;">
           {{ publicacion.contenido }}
         </p>
 
-        <div *ngIf="publicacion.imagen" style="margin-bottom: 20px; border-radius: 14px; overflow: hidden; border: 1px solid #cbd5e1; background: #f8fafc;">
+        <div *ngIf="publicacion.imagen" style="margin-bottom: 20px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(148, 163, 184, 0.28); background: #090e1a;">
           <img [src]="publicacion.imagen" alt="Imagen de publicación" style="width: 100%; max-height: 580px; object-fit: contain; display: block; margin: 0 auto;">
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-top: 1px solid rgba(148, 163, 184, 0.22); padding-top: 14px;">
           <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             <button
               (click)="darLike()"
-              [style.color]="usuarioDioLike() ? '#e11d48' : '#475569'"
+              [style.color]="usuarioDioLike() ? '#e11d48' : '#0f172a'"
               [style.background]="usuarioDioLike() ? 'linear-gradient(180deg, #ffe4e6, #fecdd3)' : 'linear-gradient(180deg, #ffffff, #f1f5f9)'"
               style="border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px;">
               {{ usuarioDioLike() ? '❤️' : '🤍' }} Me gusta ({{ publicacion.likes?.length || 0 }})
@@ -99,7 +99,7 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
 
             <button
               (click)="toggleGuardar()"
-              [style.color]="estaGuardada() ? '#92400e' : '#334155'"
+              [style.color]="estaGuardada() ? '#92400e' : '#0f172a'"
               [style.background]="estaGuardada() ? 'linear-gradient(180deg, #fef3c7, #fde68a)' : 'linear-gradient(180deg, #ffffff, #f8fafc)'"
               style="border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px;">
               {{ estaGuardada() ? '🔖 Guardado' : '📑 Guardar' }} ({{ publicacion.guardadosPor?.length || 0 }})
@@ -112,7 +112,7 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
             </button>
           </div>
 
-          <span style="font-size: 13px; font-weight: 700; color: #64748b;">
+          <span style="font-size: 13px; font-weight: 700; color: #cbd5e1;">
             💬 {{ totalComentarios }} {{ totalComentarios === 1 ? 'comentario' : 'comentarios' }}
           </span>
         </div>
@@ -120,12 +120,12 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
 
       <!-- Sección de Comentarios -->
       <div *ngIf="!cargandoPublicacion && publicacion" class="surface-card" style="padding: 24px; border-radius: 20px;">
-        <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 17px; font-weight: 800;">
+        <h3 style="margin: 0 0 16px 0; color: #f8fafc; font-size: 17px; font-weight: 800;">
           Comentarios ({{ totalComentarios }})
         </h3>
 
         <!-- Caja para escribir comentario -->
-        <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+        <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid rgba(148, 163, 184, 0.22);">
           <img *ngIf="usuarioActual?.fotoPerfil" [src]="usuarioActual.fotoPerfil" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
           <div *ngIf="!usuarioActual?.fotoPerfil" style="width: 38px; height: 38px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
             {{ (usuarioActual?.nombre || 'U').substring(0, 2).toUpperCase() }}
@@ -140,7 +140,7 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
               maxlength="300"
               style="resize: none; margin-bottom: 8px;"></textarea>
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 12px; color: #64748b;">{{ 300 - nuevoComentario.length }} caracteres restantes</span>
+              <span style="font-size: 12px; color: #cbd5e1;">{{ 300 - nuevoComentario.length }} caracteres restantes</span>
               <button
                 (click)="agregarComentario()"
                 class="btn-primary"
@@ -153,41 +153,41 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
         </div>
 
         <!-- Estado sin comentarios -->
-        <div *ngIf="!cargandoComentarios && comentarios.length === 0" style="text-align: center; padding: 28px 16px; color: #64748b; background: #f8fafc; border-radius: 14px; border: 1px dashed #cbd5e1;">
-          <p style="margin: 0; font-size: 14px; font-weight: 600;">Todavía no hay comentarios en esta publicación.</p>
-          <p style="margin: 4px 0 0 0; font-size: 13px;">¡Sé el primero en opinar!</p>
+        <div *ngIf="!cargandoComentarios && comentarios.length === 0" style="text-align: center; padding: 28px 16px; color: #cbd5e1; background: rgba(15, 23, 42, 0.72); border-radius: 14px; border: 1px dashed rgba(148, 163, 184, 0.32);">
+          <p style="margin: 0; font-size: 14px; font-weight: 600; color: #f8fafc;">Todavía no hay comentarios en esta publicación.</p>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: #cbd5e1;">¡Sé el primero en opinar!</p>
         </div>
 
         <!-- Listado ordenado uno debajo del otro -->
         <div style="display: flex; flex-direction: column; gap: 14px;">
-          <div *ngFor="let com of comentarios" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #dbe3ee; border-radius: 14px; padding: 16px;">
+          <div *ngFor="let com of comentarios" style="background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(129, 140, 248, 0.28); border-radius: 14px; padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
               <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                <img *ngIf="com.autorFoto" [src]="com.autorFoto" alt="Avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                <img *ngIf="com.autorFoto" [src]="com.autorFoto" alt="Avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1.5px solid rgba(129, 140, 248, 0.45);">
                 <div *ngIf="!com.autorFoto" style="width: 34px; height: 34px; border-radius: 50%; background: #e0e7ff; color: #3730a3; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                   {{ (com.autor || 'US').substring(0, 2).toUpperCase() }}
                 </div>
                 <div style="min-width: 0;">
                   <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <span class="texto-ajustado" style="font-weight: 700; color: #0f172a; font-size: 14px;">{{ com.autor }}</span>
-                    <span *ngIf="com.autorUsername" style="font-size: 12px; color: #64748b;">&#64;{{ com.autorUsername }}</span>
+                    <span class="texto-ajustado" style="font-weight: 700; color: #f8fafc; font-size: 14.5px;">{{ com.autor }}</span>
+                    <span *ngIf="com.autorUsername" style="font-size: 12.5px; color: #a5b4fc; font-weight: 600;">&#64;{{ com.autorUsername }}</span>
                     <span *ngIf="com.modificado" style="background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px;">
                       editado
                     </span>
                   </div>
-                  <span style="font-size: 11px; color: #64748b;">{{ com.createdAt | tiempoRelativo }}</span>
+                  <span style="font-size: 11.5px; color: #94a3b8;">{{ com.createdAt | tiempoRelativo }}</span>
                 </div>
               </div>
 
               <button
                 *ngIf="esAutorComentario(com) && editandoComentarioId !== com._id"
                 (click)="iniciarEdicion(com)"
-                style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0;">
+                style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0;">
                 ✏️ Editar
               </button>
             </div>
 
-            <p *ngIf="editandoComentarioId !== com._id" class="texto-ajustado" style="margin: 0; color: #1e293b; font-size: 14px; line-height: 1.5; white-space: pre-line;">
+            <p *ngIf="editandoComentarioId !== com._id" class="texto-ajustado" style="margin: 0; color: #f1f5f9; font-size: 14.5px; line-height: 1.55; white-space: pre-line;">
               {{ com.mensaje }}
             </p>
 
@@ -199,12 +199,12 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
                 class="field-input"
                 [(ngModel)]="textoEdicion"
                 maxlength="300"
-                style="resize: none; background: #ffffff; margin-bottom: 8px;"></textarea>
+                style="resize: none; margin-bottom: 8px;"></textarea>
               <div style="display: flex; justify-content: flex-end; gap: 8px;">
                 <button
                   type="button"
                   (click)="cancelarEdicion()"
-                  style="background: #e2e8f0; color: #334155; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                  style="background: #e2e8f0; color: #0f172a; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
                   Cancelar
                 </button>
                 <button
@@ -234,10 +234,10 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
     </div>
 
     <!-- Modal Compartir -->
-    <div *ngIf="mostrarModalCompartir" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 20px;">
-      <div style="background: #ffffff; border-radius: 18px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25); border: 1px solid #cbd5e1;">
-        <h3 style="margin: 0 0 6px 0; color: #0f172a; font-size: 18px; font-weight: 800;">Compartir publicación</h3>
-        <p style="margin: 0 0 16px 0; color: #64748b; font-size: 13px;">
+    <div *ngIf="mostrarModalCompartir" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(4px); z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 20px;">
+      <div style="background: #1e293b; border-radius: 18px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 40px rgba(2, 6, 23, 0.65); border: 1px solid rgba(129, 140, 248, 0.35);">
+        <h3 style="margin: 0 0 6px 0; color: #f8fafc; font-size: 18px; font-weight: 800;">Compartir publicación</h3>
+        <p style="margin: 0 0 16px 0; color: #cbd5e1; font-size: 13px;">
           Elegí el usuario al que querés compartir esta publicación
         </p>
 
@@ -255,7 +255,7 @@ import { AutoFocusDirective } from '../../directives/auto-focus.directive';
           <button
             type="button"
             (click)="cerrarCompartir()"
-            style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; font-weight: 600; font-size: 13px; cursor: pointer;">
+            style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; font-weight: 700; font-size: 13px; cursor: pointer;">
             Cancelar
           </button>
           <button
@@ -299,6 +299,7 @@ export class PublicacionDetalleComponent implements OnInit {
   textoEdicion = '';
   guardandoEdicion = false;
 
+  likeEnCurso = false;
   toastMensaje = '';
   toastTipo: 'success' | 'error' = 'success';
 
@@ -573,22 +574,38 @@ export class PublicacionDetalleComponent implements OnInit {
   }
 
   usuarioDioLike(): boolean {
-    const uid = this.usuarioActual?.id || this.usuarioActual?._id;
-    return Array.isArray(this.publicacion?.likes) && this.publicacion.likes.includes(uid);
+    const uid = String(this.usuarioActual?.id || this.usuarioActual?._id || '');
+    return Array.isArray(this.publicacion?.likes) && this.publicacion.likes.map(String).includes(uid);
   }
 
   darLike() {
-    const userId = this.usuarioActual?.id || this.usuarioActual?._id;
+    if (!this.publicacion || this.likeEnCurso) return;
+    const userId = String(this.usuarioActual?.id || this.usuarioActual?._id || '');
+    const likesPrevios = Array.isArray(this.publicacion.likes) ? [...this.publicacion.likes] : [];
+    const yaTeniaLike = this.usuarioDioLike();
+
+    this.likeEnCurso = true;
+    this.publicacion.likes = yaTeniaLike
+      ? likesPrevios.filter((id) => String(id) !== userId)
+      : [...likesPrevios, userId];
+    this.cdr.detectChanges();
+
     this.http
       .post<any>(`${environment.apiUrl}/publicaciones/${this.publicacionId}/like`, { userId })
       .subscribe({
         next: (pubActualizada) => {
-          if (pubActualizada?.likes) {
+          this.likeEnCurso = false;
+          if (Array.isArray(pubActualizada?.likes)) {
             this.publicacion.likes = pubActualizada.likes;
-            this.cdr.detectChanges();
           }
+          this.cdr.detectChanges();
         },
-        error: () => this.mostrarToast('No se pudo actualizar el Me gusta.', 'error'),
+        error: () => {
+          this.likeEnCurso = false;
+          this.publicacion.likes = likesPrevios;
+          this.cdr.detectChanges();
+          this.mostrarToast('No se pudo actualizar el Me gusta.', 'error');
+        },
       });
   }
 }
