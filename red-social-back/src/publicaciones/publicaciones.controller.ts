@@ -1,9 +1,23 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  Headers,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { PublicacionesService } from './publicaciones.service';
 
 @Controller('publicaciones')
 export class PublicacionesController {
-  constructor(private readonly publicacionesService: PublicacionesService) {}
+  constructor(
+    private readonly publicacionesService: PublicacionesService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @Post()
   crear(@Body() body: any) {
@@ -49,7 +63,18 @@ export class PublicacionesController {
   }
 
   @Delete(':id')
-  eliminar(@Param('id') id: string) {
-    return this.publicacionesService.eliminar(id);
+  eliminar(
+    @Param('id') id: string,
+    @Headers('authorization') authHeader?: string,
+  ) {
+    let usuarioToken: { sub?: string; rol?: string } | undefined;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        usuarioToken = this.jwtService.verify(authHeader.slice(7).trim());
+      } catch {
+        usuarioToken = undefined;
+      }
+    }
+    return this.publicacionesService.eliminar(id, usuarioToken);
   }
 }

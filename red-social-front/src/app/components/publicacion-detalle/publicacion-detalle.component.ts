@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { TiempoRelativoPipe } from '../../pipes/tiempo-relativo.pipe';
+import { AutoFocusDirective } from '../../directives/auto-focus.directive';
 
 @Component({
   selector: 'app-publicacion-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TiempoRelativoPipe, AutoFocusDirective],
   template: `
     <div style="max-width: 780px; margin: 28px auto; padding: 0 18px 60px 18px;">
 
@@ -17,11 +19,31 @@ import { environment } from '../../../environments/environment';
         {{ toastMensaje }}
       </div>
 
-      <!-- Botón volver -->
-      <div style="margin-bottom: 18px;">
+      <!-- Barra superior con Volver y Baja Admin -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 18px;">
         <a routerLink="/publicaciones" style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; background: linear-gradient(180deg, #ffffff, #f1f5f9); border: 1.5px solid #cbd5e1; border-radius: 11px; color: #1e293b; text-decoration: none; font-weight: 700; font-size: 13px; box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);">
           ← Volver a publicaciones
         </a>
+
+        <div *ngIf="!cargandoPublicacion && publicacion && puedeDarDeBaja()">
+          <button
+            *ngIf="!confirmandoBaja"
+            type="button"
+            (click)="confirmandoBaja = true"
+            style="background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; padding: 9px 16px; border-radius: 11px; font-size: 13px; font-weight: 700; cursor: pointer;">
+            🗑️ {{ esAdmin ? 'Dar de baja publicación (Admin)' : 'Dar de baja publicación' }}
+          </button>
+
+          <div *ngIf="confirmandoBaja" style="display: flex; align-items: center; gap: 8px; background: #ffffff; padding: 6px 12px; border-radius: 10px; border: 1px solid #fecaca;">
+            <span style="font-size: 12px; font-weight: 600; color: #991b1b;">¿Dar de baja publicación y comentarios?</span>
+            <button type="button" (click)="darDeBajaPublicacion()" style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer;">
+              Confirmar
+            </button>
+            <button type="button" (click)="confirmandoBaja = false" style="background: #e2e8f0; color: #334155; border: none; padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer;">
+              Cancelar
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Cargando publicación -->
@@ -40,7 +62,7 @@ import { environment } from '../../../environments/environment';
             <span class="texto-ajustado" style="font-weight: 800; color: #0f172a; font-size: 17px; display: block;">{{ publicacion.autor || 'Usuario' }}</span>
             <span style="font-size: 13px; color: #64748b;">
               <span *ngIf="publicacion.autorUsername">&#64;{{ publicacion.autorUsername }} · </span>
-              {{ publicacion.createdAt | date:'dd/MM/yyyy HH:mm' }}
+              {{ publicacion.createdAt | tiempoRelativo }}
             </span>
           </div>
         </div>
@@ -53,7 +75,7 @@ import { environment } from '../../../environments/environment';
           {{ publicacion.contenido }}
         </p>
 
-        <div *ngIf="publicacion.imagen" style="margin-bottom: 20px; border-radius: 14px; overflow: hidden; border: 1px solid #cbd5e1; background: #f8fafc; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);">
+        <div *ngIf="publicacion.imagen" style="margin-bottom: 20px; border-radius: 14px; overflow: hidden; border: 1px solid #cbd5e1; background: #f8fafc;">
           <img [src]="publicacion.imagen" alt="Imagen de publicación" style="width: 100%; max-height: 580px; object-fit: contain; display: block; margin: 0 auto;">
         </div>
 
@@ -114,7 +136,7 @@ import { environment } from '../../../environments/environment';
 
         <!-- Listado ordenado uno debajo del otro -->
         <div style="display: flex; flex-direction: column; gap: 14px;">
-          <div *ngFor="let com of comentarios" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #dbe3ee; border-radius: 14px; padding: 16px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);">
+          <div *ngFor="let com of comentarios" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #dbe3ee; border-radius: 14px; padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
               <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
                 <img *ngIf="com.autorFoto" [src]="com.autorFoto" alt="Avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
@@ -129,11 +151,10 @@ import { environment } from '../../../environments/environment';
                       editado
                     </span>
                   </div>
-                  <span style="font-size: 11px; color: #64748b;">{{ com.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span style="font-size: 11px; color: #64748b;">{{ com.createdAt | tiempoRelativo }}</span>
                 </div>
               </div>
 
-              <!-- Botón editar si es el autor del comentario -->
               <button
                 *ngIf="esAutorComentario(com) && editandoComentarioId !== com._id"
                 (click)="iniciarEdicion(com)"
@@ -142,15 +163,15 @@ import { environment } from '../../../environments/environment';
               </button>
             </div>
 
-            <!-- Modo lectura -->
             <p *ngIf="editandoComentarioId !== com._id" class="texto-ajustado" style="margin: 0; color: #1e293b; font-size: 14px; line-height: 1.5; white-space: pre-line;">
               {{ com.mensaje }}
             </p>
 
-            <!-- Modo edición -->
+            <!-- Modo edición con directiva appAutoFocus -->
             <div *ngIf="editandoComentarioId === com._id" style="margin-top: 8px;">
               <textarea
                 rows="2"
+                appAutoFocus
                 class="field-input"
                 [(ngModel)]="textoEdicion"
                 maxlength="300"
@@ -175,13 +196,13 @@ import { environment } from '../../../environments/environment';
           </div>
         </div>
 
-        <!-- Botón Cargar más comentarios (mantiene los anteriores) -->
+        <!-- Botón Cargar más comentarios -->
         <div *ngIf="hasMore" style="text-align: center; margin-top: 20px;">
           <button
             type="button"
             (click)="cargarMasComentarios()"
             [disabled]="cargandoMas"
-            style="background: linear-gradient(180deg, #eff6ff, #dbeafe); color: #1d4ed8; border: 1px solid #93c5fd; padding: 10px 22px; border-radius: 11px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 8px rgba(37, 99, 235, 0.1);">
+            style="background: linear-gradient(180deg, #eff6ff, #dbeafe); color: #1d4ed8; border: 1px solid #93c5fd; padding: 10px 22px; border-radius: 11px; font-size: 13px; font-weight: 700; cursor: pointer;">
             {{ cargandoMas ? 'Cargando...' : 'Cargar más comentarios' }}
           </button>
         </div>
@@ -197,6 +218,7 @@ export class PublicacionDetalleComponent implements OnInit {
   cargandoPublicacion = true;
   cargandoComentarios = true;
   cargandoMas = false;
+  confirmandoBaja = false;
 
   comentarios: any[] = [];
   page = 1;
@@ -220,6 +242,15 @@ export class PublicacionDetalleComponent implements OnInit {
     private http: HttpClient,
     private cdr: ChangeDetectorRef
   ) {}
+
+  get esAdmin(): boolean {
+    return this.usuarioActual?.rol === 'administrador';
+  }
+
+  puedeDarDeBaja(): boolean {
+    const uid = this.usuarioActual?.id || this.usuarioActual?._id;
+    return this.esAdmin || (Boolean(uid) && this.publicacion?.autorId === uid);
+  }
 
   ngOnInit() {
     const userJson = localStorage.getItem('usuario');
@@ -260,6 +291,18 @@ export class PublicacionDetalleComponent implements OnInit {
       error: () => {
         this.cargandoPublicacion = false;
         this.router.navigate(['/publicaciones']);
+      },
+    });
+  }
+
+  darDeBajaPublicacion() {
+    this.http.delete(`${environment.apiUrl}/publicaciones/${this.publicacionId}`).subscribe({
+      next: () => {
+        this.router.navigate(['/publicaciones']);
+      },
+      error: () => {
+        this.confirmandoBaja = false;
+        this.mostrarToast('No se pudo dar de baja la publicación.', 'error');
       },
     });
   }

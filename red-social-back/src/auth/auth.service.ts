@@ -28,6 +28,7 @@ export class AuthService {
       descripcion: usuario.descripcion || '',
       fotoPerfil: usuario.fotoPerfil || '',
       rol: usuario.rol || 'usuario',
+      activo: usuario.activo !== false,
     };
   }
 
@@ -62,6 +63,7 @@ export class AuthService {
     const nuevoUsuario = new this.usuarioModel({
       ...dto,
       rol: dto.rol === 'administrador' ? 'administrador' : 'usuario',
+      activo: true,
       password: hashedPassword,
     });
 
@@ -96,6 +98,12 @@ export class AuthService {
       throw new UnauthorizedException('La contraseña ingresada es incorrecta.');
     }
 
+    if (usuario.activo === false) {
+      throw new UnauthorizedException(
+        'Tu cuenta se encuentra deshabilitada. No estás autorizado para ingresar.',
+      );
+    }
+
     const access_token = this.generarToken(usuario);
 
     return {
@@ -113,8 +121,8 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(token);
       const usuario = await this.usuarioModel.findById(payload.sub);
-      if (!usuario) {
-        throw new UnauthorizedException('Usuario no encontrado.');
+      if (!usuario || usuario.activo === false) {
+        throw new UnauthorizedException('Usuario deshabilitado o no encontrado.');
       }
 
       return {
@@ -134,19 +142,23 @@ export class AuthService {
 
     try {
       const payload = this.jwtService.verify(token);
+      const usuario = await this.usuarioModel.findById(payload.sub);
+      if (!usuario || usuario.activo === false) {
+        throw new UnauthorizedException('Usuario deshabilitado o no encontrado.');
+      }
+
       const nuevoPayload = {
-        sub: payload.sub,
-        correo: payload.correo,
-        username: payload.username,
-        rol: payload.rol || 'usuario',
+        sub: usuario._id.toString(),
+        correo: usuario.correo,
+        username: usuario.username,
+        rol: usuario.rol || 'usuario',
       };
 
       const access_token = this.jwtService.sign(nuevoPayload, { expiresIn: 900 });
-      const usuario = await this.usuarioModel.findById(payload.sub);
 
       return {
         access_token,
-        ...(usuario ? { usuario: this.formatearUsuario(usuario) } : {}),
+        usuario: this.formatearUsuario(usuario),
       };
     } catch {
       throw new UnauthorizedException('Token inválido o vencido.');

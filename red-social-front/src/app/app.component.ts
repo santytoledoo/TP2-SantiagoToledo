@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SesionService } from './services/sesion.service';
+import { SoloAdminDirective } from './directives/solo-admin.directive';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, SoloAdminDirective],
   template: `
     <!-- Toast global de sesión -->
     <div
@@ -16,7 +17,7 @@ import { SesionService } from './services/sesion.service';
       {{ msg.texto }}
     </div>
 
-    <nav *ngIf="obtenerUsuario() as user" style="position: sticky; top: 0; z-index: 100; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid #dbe3ee; padding: 12px 28px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);">
+    <nav *ngIf="obtenerUsuario() as user" style="position: sticky; top: 0; z-index: 100; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid #dbe3ee; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);">
       <a routerLink="/publicaciones" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
         <div style="width: 38px; height: 38px; border-radius: 11px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);">
           U
@@ -24,10 +25,19 @@ import { SesionService } from './services/sesion.service';
         <span style="color: #0f172a; font-weight: 800; font-size: 18px; letter-spacing: -0.4px;">UTN Social</span>
       </a>
 
-      <div style="display: flex; gap: 14px; align-items: center;">
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <a routerLink="/publicaciones" routerLinkActive="nav-active" style="text-decoration: none; color: #475569; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 10px; transition: all 0.2s;">
           Muro
         </a>
+
+        <!-- Opciones visibles SOLO para administradores -->
+        <a *appSoloAdmin routerLink="/dashboard/usuarios" routerLinkActive="nav-active" style="text-decoration: none; color: #475569; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 10px; transition: all 0.2s;">
+          🛡️ Usuarios
+        </a>
+        <a *appSoloAdmin routerLink="/dashboard/estadisticas" routerLinkActive="nav-active" style="text-decoration: none; color: #475569; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 10px; transition: all 0.2s;">
+          📊 Estadísticas
+        </a>
+
         <a routerLink="/mi-perfil" routerLinkActive="nav-active" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: #475569; font-weight: 600; font-size: 14px; padding: 6px 12px; border-radius: 10px; transition: all 0.2s;">
           <img *ngIf="user.fotoPerfil" [src]="user.fotoPerfil" alt="Avatar" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 2px solid #2563eb;">
           <div *ngIf="!user.fotoPerfil" style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center;">
@@ -35,6 +45,7 @@ import { SesionService } from './services/sesion.service';
           </div>
           <span>Mi Perfil</span>
         </a>
+
         <button (click)="cerrarSesion()" style="background: linear-gradient(180deg, #fee2e2, #fecaca); color: #b91c1c; border: 1px solid #fca5a5; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700; box-shadow: 0 2px 6px rgba(220, 38, 38, 0.12);">
           Salir
         </button>

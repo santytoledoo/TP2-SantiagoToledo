@@ -5,11 +5,13 @@ import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { procesarImagenArchivo } from '../../utils/imagen.util';
+import { TiempoRelativoPipe } from '../../pipes/tiempo-relativo.pipe';
+import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directive';
 
 @Component({
   selector: 'app-publicaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TiempoRelativoPipe, ResaltarHoverDirective],
   template: `
     <div style="max-width: 680px; margin: 28px auto; padding: 0 18px 50px 18px;">
 
@@ -74,8 +76,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
           </div>
         </div>
 
-        <!-- Vista previa de imagen seleccionada -->
-        <div *ngIf="nuevaImagen" style="position: relative; margin-bottom: 14px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);">
+        <div *ngIf="nuevaImagen" style="position: relative; margin-bottom: 14px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1;">
           <img [src]="nuevaImagen" alt="Vista previa" style="width: 100%; max-height: 280px; object-fit: cover; display: block;">
           <button type="button" (click)="nuevaImagen = ''" style="position: absolute; top: 10px; right: 10px; background: rgba(15, 23, 42, 0.85); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
             ✕ Quitar foto
@@ -121,7 +122,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
       </div>
 
       <!-- Tarjetas de publicaciones -->
-      <div *ngFor="let pub of publicaciones" class="surface-card surface-card-hover" style="padding: 22px; margin-bottom: 18px;">
+      <div *ngFor="let pub of publicaciones" [appResaltarHover]="'#93c5fd'" class="surface-card" style="padding: 22px; margin-bottom: 18px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
           <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
             <img *ngIf="pub.autorFoto" [src]="pub.autorFoto" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid #e2e8f0;">
@@ -132,13 +133,12 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
               <span class="texto-ajustado" style="font-weight: 700; color: #0f172a; font-size: 15px; display: block;">{{ pub.autor || 'Usuario' }}</span>
               <span style="font-size: 12px; color: #64748b;">
                 <span *ngIf="pub.autorUsername">&#64;{{ pub.autorUsername }} · </span>
-                {{ pub.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                {{ pub.createdAt | tiempoRelativo }}
               </span>
             </div>
           </div>
         </div>
 
-        <!-- Contenido clickeable para abrir la publicación en grande -->
         <div (click)="verPublicacion(pub._id)" style="cursor: pointer;">
           <h4 *ngIf="pub.titulo" class="texto-ajustado" style="margin: 0 0 8px 0; color: #0f172a; font-size: 18px; font-weight: 800; line-height: 1.35;">
             {{ pub.titulo }}
@@ -148,7 +148,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
             {{ pub.contenido }}
           </p>
 
-          <div *ngIf="pub.imagen" style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);">
+          <div *ngIf="pub.imagen" style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
             <img [src]="pub.imagen" alt="Imagen de publicación" style="width: 100%; max-height: 420px; object-fit: cover; display: block;">
           </div>
         </div>
@@ -159,26 +159,26 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
               (click)="darLike(pub._id)"
               [style.color]="usuarioDioLike(pub) ? '#e11d48' : '#475569'"
               [style.background]="usuarioDioLike(pub) ? 'linear-gradient(180deg, #ffe4e6, #fecdd3)' : 'linear-gradient(180deg, #ffffff, #f1f5f9)'"
-              style="border: 1px solid #cbd5e1; padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px; box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);">
+              style="border: 1px solid #cbd5e1; padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 13px;">
               {{ usuarioDioLike(pub) ? '❤️' : '🤍' }} Me gusta ({{ pub.likes?.length || 0 }})
             </button>
 
             <button
               (click)="verPublicacion(pub._id)"
-              style="background: linear-gradient(180deg, #eff6ff, #dbeafe); color: #1d4ed8; border: 1px solid #93c5fd; padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 13px; box-shadow: 0 2px 5px rgba(37, 99, 235, 0.08);">
+              style="background: linear-gradient(180deg, #eff6ff, #dbeafe); color: #1d4ed8; border: 1px solid #93c5fd; padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; font-size: 13px;">
               💬 Comentar / Ver grande
             </button>
           </div>
 
-          <!-- Borrado con confirmación integrada -->
-          <div *ngIf="esAutor(pub)">
-            <button *ngIf="confirmandoBorradoId !== pub._id" (click)="confirmandoBorradoId = pub._id" style="background: none; border: none; cursor: pointer; color: #dc2626; font-weight: 600; font-size: 13px;">
-              🗑️ Eliminar
+          <!-- Botón de baja habilitado para el autor o cualquier ADMINISTRADOR -->
+          <div *ngIf="puedeDarDeBaja(pub)">
+            <button *ngIf="confirmandoBorradoId !== pub._id" (click)="confirmandoBorradoId = pub._id" style="background: #fef2f2; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: #dc2626; font-weight: 700; font-size: 12.5px;">
+              🗑️ {{ esAdmin && !esAutor(pub) ? 'Dar de baja (Admin)' : 'Dar de baja' }}
             </button>
             <div *ngIf="confirmandoBorradoId === pub._id" style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 12px; color: #64748b;">¿Seguro?</span>
+              <span style="font-size: 12px; color: #64748b;">¿Dar de baja?</span>
               <button (click)="eliminar(pub._id)" style="background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
-                Sí, borrar
+                Sí, confirmar
               </button>
               <button (click)="confirmandoBorradoId = null" style="background: #e2e8f0; color: #334155; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
                 Cancelar
@@ -193,7 +193,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         <button
           (click)="cambiarPagina(page - 1)"
           [disabled]="page <= 1"
-          style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);"
+          style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer;"
           [style.opacity]="page <= 1 ? '0.5' : '1'">
           ← Anterior
         </button>
@@ -205,7 +205,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         <button
           (click)="cambiarPagina(page + 1)"
           [disabled]="page >= totalPages"
-          style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);"
+          style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer;"
           [style.opacity]="page >= totalPages ? '0.5' : '1'">
           Siguiente →
         </button>
@@ -244,6 +244,10 @@ export class PublicacionesComponent implements OnInit {
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
+
+  get esAdmin(): boolean {
+    return this.usuarioActual?.rol === 'administrador';
+  }
 
   get errorTitulo(): string {
     const val = this.nuevoTitulo.trim();
@@ -398,14 +402,18 @@ export class PublicacionesComponent implements OnInit {
     return pub.autorId === uid || pub.autor === this.usuarioActual?.nombre;
   }
 
+  puedeDarDeBaja(pub: any): boolean {
+    return this.esAdmin || this.esAutor(pub);
+  }
+
   eliminar(id: string) {
     this.http.delete(`${environment.apiUrl}/publicaciones/${id}`).subscribe({
       next: () => {
         this.confirmandoBorradoId = null;
         this.cargarPublicaciones();
-        this.mostrarToast('Publicación eliminada.');
+        this.mostrarToast('Publicación y comentarios dados de baja.');
       },
-      error: () => this.mostrarToast('No se pudo eliminar la publicación.', 'error'),
+      error: () => this.mostrarToast('No se pudo dar de baja la publicación.', 'error'),
     });
   }
 }

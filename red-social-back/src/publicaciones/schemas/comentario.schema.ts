@@ -23,6 +23,9 @@ export class Comentario extends Document {
 
   @Prop({ default: false })
   modificado: boolean;
+
+  @Prop({ default: true })
+  activo: boolean;
 }
 
 export const ComentarioSchema = SchemaFactory.createForClass(Comentario);

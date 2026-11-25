@@ -1,0 +1,16 @@
+{
+  "name": "UTN Social - Red Social Universitaria",
+  "short_name": "UTN Social",
+  "theme_color": "#1d4ed8",
+  "background_color": "#eef2f7",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

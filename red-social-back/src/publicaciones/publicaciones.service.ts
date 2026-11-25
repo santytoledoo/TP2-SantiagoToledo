@@ -44,7 +44,10 @@ export class PublicacionesService {
   }
 
   async crear(dto: any) {
-    const nuevaPublicacion = new this.publicacionModel(dto);
+    const nuevaPublicacion = new this.publicacionModel({
+      ...dto,
+      activo: true,
+    });
     return await nuevaPublicacion.save();
   }
 
@@ -53,7 +56,7 @@ export class PublicacionesService {
     const limit = Math.max(1, parseInt(query.limit || '5', 10));
     const skip = (page - 1) * limit;
 
-    const filtro: any = {};
+    const filtro: any = { activo: { $ne: false } };
     if (query.autorId) {
       filtro.autorId = query.autorId;
     }
@@ -92,16 +95,18 @@ export class PublicacionesService {
   }
 
   async obtenerPorId(id: string) {
-    const pub = await this.publicacionModel.findById(id).exec();
+    const pub = await this.publicacionModel
+      .findOne({ _id: id, activo: { $ne: false } })
+      .exec();
     if (!pub) {
-      throw new NotFoundException('Publicación no encontrada.');
+      throw new NotFoundException('Publicación no encontrada o dada de baja.');
     }
     const [hidratada] = await this.hidratarAutores([pub]);
     return hidratada;
   }
 
   async toggleLike(id: string, userId: string) {
-    const pub = await this.publicacionModel.findById(id);
+    const pub = await this.publicacionModel.findOne({ _id: id, activo: { $ne: false } });
     if (!pub) return null;
 
     const index = pub.likes.indexOf(userId);
@@ -114,9 +119,27 @@ export class PublicacionesService {
     return await pub.save();
   }
 
-  async eliminar(id: string) {
-    await this.comentarioModel.deleteMany({ publicacionId: id });
-    return await this.publicacionModel.findByIdAndDelete(id);
+  async eliminar(id: string, usuarioToken?: { sub?: string; rol?: string }) {
+    const pub = await this.publicacionModel.findById(id);
+    if (!pub) {
+      throw new NotFoundException('Publicación no encontrada.');
+    }
+
+    if (usuarioToken) {
+      const esAdmin = usuarioToken.rol === 'administrador';
+      const esAutor = pub.autorId === usuarioToken.sub;
+      if (!esAdmin && !esAutor) {
+        throw new ForbiddenException('No tenés permisos para dar de baja esta publicación.');
+      }
+    }
+
+    await this.publicacionModel.findByIdAndUpdate(id, { $set: { activo: false } });
+    await this.comentarioModel.updateMany(
+      { publicacionId: id },
+      { $set: { activo: false } },
+    );
+
+    return { message: 'Publicación y comentarios dados de baja correctamente.' };
   }
 
   async obtenerComentarios(publicacionId: string, query: { page?: string; limit?: string }) {
@@ -124,7 +147,7 @@ export class PublicacionesService {
     const limit = Math.max(1, parseInt(query.limit || '5', 10));
     const skip = (page - 1) * limit;
 
-    const filtro = { publicacionId };
+    const filtro = { publicacionId, activo: { $ne: false } };
     const total = await this.comentarioModel.countDocuments(filtro);
     const totalPages = Math.ceil(total / limit) || 1;
 
@@ -147,6 +170,14 @@ export class PublicacionesService {
   }
 
   async crearComentario(publicacionId: string, dto: any) {
+    const pub = await this.publicacionModel.findOne({
+      _id: publicacionId,
+      activo: { $ne: false },
+    });
+    if (!pub) {
+      throw new NotFoundException('La publicación no existe o fue dada de baja.');
+    }
+
     const nuevoComentario = new this.comentarioModel({
       publicacionId,
       mensaje: dto.mensaje,
@@ -155,6 +186,7 @@ export class PublicacionesService {
       autorUsername: dto.autorUsername || '',
       autorFoto: dto.autorFoto || '',
       modificado: false,
+      activo: true,
     });
 
     const guardado = await nuevoComentario.save();
@@ -163,7 +195,10 @@ export class PublicacionesService {
   }
 
   async editarComentario(comentarioId: string, dto: any) {
-    const comentario = await this.comentarioModel.findById(comentarioId);
+    const comentario = await this.comentarioModel.findOne({
+      _id: comentarioId,
+      activo: { $ne: false },
+    });
     if (!comentario) {
       throw new NotFoundException('Comentario no encontrado.');
     }
