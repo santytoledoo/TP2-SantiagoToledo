@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { procesarImagenArchivo } from '../../utils/imagen.util';
 
@@ -20,14 +20,14 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
 
       <!-- Tarjeta Principal de Perfil -->
       <div class="surface-card" style="border-radius: 22px; overflow: hidden; margin-bottom: 28px;">
-        
+
         <!-- Banner superior -->
         <div style="height: 140px; background: linear-gradient(125deg, #0f172a 0%, #1e3a8a 52%, #2563eb 100%); position: relative;"></div>
 
         <div style="padding: 0 28px 28px 28px;">
-          <!-- Fila de Avatar + Botón Editar (solo se muestra cuando NO está editando) -->
+          <!-- Fila de Avatar + Botón Editar (solo en perfil propio) -->
           <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: -54px; margin-bottom: 16px; gap: 16px; flex-wrap: wrap;">
-            
+
             <!-- Avatar interactivo con botón de cámara -->
             <div style="position: relative; width: 108px; height: 108px;">
               <div style="width: 108px; height: 108px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #ffffff; font-size: 36px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 4px solid #ffffff; box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);">
@@ -35,15 +35,15 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
                 <span *ngIf="!avatarMostrado">{{ iniciales }}</span>
               </div>
 
-              <!-- Acceso directo para cambiar foto desde el avatar -->
-              <label title="Cambiar foto de perfil" style="position: absolute; bottom: 2px; right: 2px; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #1e293b, #0f172a); color: #ffffff; border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.25);">
+              <!-- Acceso directo para cambiar foto desde el avatar (solo perfil propio) -->
+              <label *ngIf="esPerfilPropio" title="Cambiar foto de perfil" style="position: absolute; bottom: 2px; right: 2px; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #1e293b, #0f172a); color: #ffffff; border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.25);">
                 📷
                 <input type="file" accept="image/*" (change)="onCambioRapidoFoto($event)" style="display: none;">
               </label>
             </div>
 
             <button
-              *ngIf="!editando"
+              *ngIf="esPerfilPropio && !editando"
               type="button"
               (click)="toggleEditar()"
               style="background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%); color: #0f172a; border: 1.5px solid #cbd5e1; padding: 9px 20px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);">
@@ -65,7 +65,7 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
             <p *ngIf="usuario?.descripcion" class="texto-ajustado" style="margin: 0 0 16px 0; color: #1e293b; font-size: 15px; line-height: 1.55;">
               {{ usuario.descripcion }}
             </p>
-            <p *ngIf="!usuario?.descripcion" style="margin: 0 0 16px 0; color: #94a3b8; font-size: 14px; font-style: italic;">
+            <p *ngIf="!usuario?.descripcion && esPerfilPropio" style="margin: 0 0 16px 0; color: #94a3b8; font-size: 14px; font-style: italic;">
               Sin biografía todavía. Hacé clic en "Editar perfil" para contar algo sobre vos.
             </p>
 
@@ -92,8 +92,8 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
             </div>
           </div>
 
-          <!-- MODO EDICIÓN (con un único botón Cancelar al final) -->
-          <form *ngIf="editando" (ngSubmit)="guardarPerfil()" style="margin-top: 8px; padding-top: 18px; border-top: 1px solid #e2e8f0;">
+          <!-- MODO EDICIÓN -->
+          <form *ngIf="esPerfilPropio && editando" (ngSubmit)="guardarPerfil()" style="margin-top: 8px; padding-top: 18px; border-top: 1px solid #e2e8f0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
               <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #0f172a;">Editar información del perfil</h3>
               <button
@@ -174,20 +174,20 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         </div>
       </div>
 
-      <!-- Sección de Publicaciones Propias -->
+      <!-- Sección de Publicaciones (últimas 3 si es otro usuario) -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h2 style="margin: 0; color: #0f172a; font-size: 19px; font-weight: 800;">
-          Mis publicaciones
+          {{ esPerfilPropio ? 'Mis publicaciones' : 'Últimas 3 publicaciones' }}
         </h2>
         <span style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 999px; border: 1px solid #93c5fd;">
-          {{ totalMisPublis }} {{ totalMisPublis === 1 ? 'publicación' : 'publicaciones' }}
+          {{ misPublicaciones.length }} {{ misPublicaciones.length === 1 ? 'publicación' : 'publicaciones' }}
         </span>
       </div>
 
       <div *ngIf="misPublicaciones.length === 0" class="surface-card" style="text-align: center; color: #64748b; padding: 44px 20px; border-style: dashed;">
-        <p style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #334155;">Todavía no publicaste nada</p>
-        <p style="margin: 0 0 18px 0; font-size: 13px;">Cuando compartas algo en el muro, va a aparecer acá.</p>
-        <a routerLink="/publicaciones" class="btn-primary" style="display: inline-block; text-decoration: none; font-size: 13px; padding: 10px 20px;">
+        <p style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #334155;">Todavía no hay publicaciones</p>
+        <p *ngIf="esPerfilPropio" style="margin: 0 0 18px 0; font-size: 13px;">Cuando compartas algo en el muro, va a aparecer acá.</p>
+        <a *ngIf="esPerfilPropio" routerLink="/publicaciones" class="btn-primary" style="display: inline-block; text-decoration: none; font-size: 13px; padding: 10px 20px;">
           Ir a publicar algo
         </a>
       </div>
@@ -231,9 +231,9 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
             {{ usuarioDioLike(pub) ? '❤️' : '🤍' }} {{ pub.likes?.length || 0 }} Me gusta
           </button>
 
-          <div>
+          <div *ngIf="puedeDarDeBaja(pub)">
             <button *ngIf="confirmandoBorradoId !== pub._id" (click)="confirmandoBorradoId = pub._id" style="background: none; border: none; color: #dc2626; font-weight: 600; font-size: 13px; cursor: pointer;">
-              🗑️ Eliminar
+              🗑️ {{ esAdmin && !esPerfilPropio ? 'Dar de baja (Admin)' : 'Eliminar' }}
             </button>
             <div *ngIf="confirmandoBorradoId === pub._id" style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 12px; color: #64748b;">¿Borrar?</span>
@@ -248,8 +248,8 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
         </div>
       </div>
 
-      <!-- Paginación -->
-      <div *ngIf="totalPages > 1" style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 22px;">
+      <!-- Paginación solo en perfil propio -->
+      <div *ngIf="esPerfilPropio && totalPages > 1" style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 22px;">
         <button (click)="cambiarPagina(page - 1)" [disabled]="page <= 1" [style.opacity]="page <= 1 ? '0.5' : '1'" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);">
           ← Anterior
         </button>
@@ -263,6 +263,8 @@ import { procesarImagenArchivo } from '../../utils/imagen.util';
 })
 export class MiPerfilComponent implements OnInit {
   usuario: any = null;
+  usuarioLogueado: any = null;
+  idPerfilVisitado: string | null = null;
   editando = false;
   guardando = false;
   errorFoto = '';
@@ -288,9 +290,20 @@ export class MiPerfilComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private http: HttpClient,
     private cdr: ChangeDetectorRef
   ) {}
+
+  get esPerfilPropio(): boolean {
+    const miId = this.usuarioLogueado?.id || this.usuarioLogueado?._id;
+    const targetId = this.idPerfilVisitado || this.usuario?.id || this.usuario?._id;
+    return !this.idPerfilVisitado || String(miId) === String(targetId);
+  }
+
+  get esAdmin(): boolean {
+    return this.usuarioLogueado?.rol === 'administrador';
+  }
 
   get avatarMostrado(): string {
     return this.editando ? this.formEdit.fotoPerfil : (this.usuario?.fotoPerfil || '');
@@ -352,18 +365,36 @@ export class MiPerfilComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    this.usuario = JSON.parse(raw);
-    const uid = this.usuario.id || this.usuario._id;
+    this.usuarioLogueado = JSON.parse(raw);
 
-    if (uid) {
-      this.http.get<any>(`${environment.apiUrl}/auth/perfil/${uid}`).subscribe({
-        next: (perfilActualizado) => {
-          this.usuario = perfilActualizado;
-          localStorage.setItem('usuario', JSON.stringify(perfilActualizado));
-          this.cdr.detectChanges();
-        }
-      });
+    this.route.paramMap.subscribe((params) => {
+      this.idPerfilVisitado = params.get('id');
+      this.page = 1;
+      this.editando = false;
+      this.cargarDatosPerfil();
+    });
+  }
+
+  private cargarDatosPerfil() {
+    const miId = this.usuarioLogueado?.id || this.usuarioLogueado?._id;
+    const uid = this.idPerfilVisitado || miId;
+    if (!uid) return;
+
+    if (this.idPerfilVisitado && String(this.idPerfilVisitado) !== String(miId)) {
+      this.http
+        .post(`${environment.apiUrl}/auth/perfil/${uid}/visita`, { visitanteId: miId })
+        .subscribe({ error: () => {} });
     }
+
+    this.http.get<any>(`${environment.apiUrl}/auth/perfil/${uid}`).subscribe({
+      next: (perfilActualizado) => {
+        this.usuario = perfilActualizado;
+        if (this.esPerfilPropio) {
+          localStorage.setItem('usuario', JSON.stringify(perfilActualizado));
+        }
+        this.cdr.detectChanges();
+      }
+    });
 
     this.cargarMisPublicaciones();
   }
@@ -379,6 +410,7 @@ export class MiPerfilComponent implements OnInit {
   }
 
   toggleEditar() {
+    if (!this.esPerfilPropio) return;
     this.editando = !this.editando;
     this.errorFoto = '';
     if (this.editando && this.usuario) {
@@ -395,6 +427,7 @@ export class MiPerfilComponent implements OnInit {
   }
 
   async onCambioRapidoFoto(event: any) {
+    if (!this.esPerfilPropio) return;
     const file: File = event.target?.files?.[0];
     if (!file) return;
     try {
@@ -439,7 +472,7 @@ export class MiPerfilComponent implements OnInit {
 
   guardarPerfil() {
     const uid = this.usuario?.id || this.usuario?._id;
-    if (!uid || !this.formularioEditValido) return;
+    if (!uid || !this.formularioEditValido || !this.esPerfilPropio) return;
 
     this.guardando = true;
     const payload = {
@@ -471,13 +504,16 @@ export class MiPerfilComponent implements OnInit {
   }
 
   cargarMisPublicaciones() {
-    const uid = this.usuario?.id || this.usuario?._id;
+    const miId = this.usuarioLogueado?.id || this.usuarioLogueado?._id;
+    const uid = this.idPerfilVisitado || miId;
     if (!uid) return;
 
-    this.http.get<any>(`${environment.apiUrl}/publicaciones?autorId=${uid}&page=${this.page}&limit=5`).subscribe({
+    const limiteConsulta = this.esPerfilPropio ? 5 : 3;
+    this.http.get<any>(`${environment.apiUrl}/publicaciones?autorId=${uid}&page=${this.page}&limit=${limiteConsulta}`).subscribe({
       next: (res) => {
-        this.misPublicaciones = res?.data || [];
-        this.totalMisPublis = res?.total || 0;
+        const lista = res?.data || [];
+        this.misPublicaciones = this.esPerfilPropio ? lista : lista.slice(0, 3);
+        this.totalMisPublis = res?.total ?? lista.length;
         this.totalPages = res?.totalPages || 1;
         this.cdr.detectChanges();
       }
@@ -485,16 +521,22 @@ export class MiPerfilComponent implements OnInit {
   }
 
   usuarioDioLike(pub: any): boolean {
-    const uid = this.usuario?.id || this.usuario?._id;
+    const uid = this.usuarioLogueado?.id || this.usuarioLogueado?._id;
     return Array.isArray(pub.likes) && pub.likes.includes(uid);
   }
 
   darLike(id: string) {
-    const userId = this.usuario?.id || this.usuario?._id;
+    const userId = this.usuarioLogueado?.id || this.usuarioLogueado?._id;
     if (!userId) return;
     this.http.post(`${environment.apiUrl}/publicaciones/${id}/like`, { userId }).subscribe({
       next: () => this.cargarMisPublicaciones()
     });
+  }
+
+  puedeDarDeBaja(pub: any): boolean {
+    const miId = this.usuarioLogueado?.id || this.usuarioLogueado?._id;
+    const esAutorPub = pub?.autorId === miId || this.esPerfilPropio;
+    return this.esAdmin || esAutorPub;
   }
 
   cambiarPagina(nuevaPagina: number) {

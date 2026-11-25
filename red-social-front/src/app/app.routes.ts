@@ -17,6 +17,7 @@ export const routes: Routes = [
   { path: 'publicaciones', component: PublicacionesComponent },
   { path: 'publicacion/:id', component: PublicacionDetalleComponent },
   { path: 'mi-perfil', component: MiPerfilComponent },
+  { path: 'perfil/:id', component: MiPerfilComponent },
   {
     path: 'dashboard',
     canActivate: [adminGuard],

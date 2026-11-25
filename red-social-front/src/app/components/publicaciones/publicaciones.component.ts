@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -104,7 +104,7 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
       <!-- Barra de Ordenamiento -->
       <div class="surface-card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding: 12px 18px; border-radius: 14px;">
         <span style="font-size: 14px; font-weight: 700; color: #334155;">
-          Publicaciones ({{ total }})
+          Publicaciones ({{ publicaciones.length }} de {{ total }})
         </span>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 13px; color: #64748b;">Ordenar por:</span>
@@ -124,7 +124,10 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
       <!-- Tarjetas de publicaciones -->
       <div *ngFor="let pub of publicaciones" [appResaltarHover]="'#93c5fd'" class="surface-card" style="padding: 22px; margin-bottom: 18px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+          <div
+            (click)="irAPerfilAutor(pub)"
+            style="display: flex; align-items: center; gap: 12px; min-width: 0; cursor: pointer;"
+            title="Ver perfil de {{ pub.autor || 'Usuario' }}">
             <img *ngIf="pub.autorFoto" [src]="pub.autorFoto" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid #e2e8f0;">
             <div *ngIf="!pub.autorFoto" style="width: 44px; height: 44px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #3730a3; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">
               {{ (pub.autor || 'US').substring(0, 2).toUpperCase() }}
@@ -188,32 +191,18 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
         </div>
       </div>
 
-      <!-- Paginación -->
-      <div *ngIf="totalPages > 1" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 26px;">
-        <button
-          (click)="cambiarPagina(page - 1)"
-          [disabled]="page <= 1"
-          style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer;"
-          [style.opacity]="page <= 1 ? '0.5' : '1'">
-          ← Anterior
-        </button>
+      <!-- Indicador Scroll Infinito -->
+      <div *ngIf="cargando" style="text-align: center; padding: 18px; color: #64748b; font-size: 13px; font-weight: 600;">
+        Cargando más publicaciones...
+      </div>
 
-        <span style="font-size: 13px; font-weight: 600; color: #475569;">
-          Página {{ page }} de {{ totalPages }}
-        </span>
-
-        <button
-          (click)="cambiarPagina(page + 1)"
-          [disabled]="page >= totalPages"
-          style="padding: 9px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 13px; cursor: pointer;"
-          [style.opacity]="page >= totalPages ? '0.5' : '1'">
-          Siguiente →
-        </button>
+      <div *ngIf="!cargando && publicaciones.length > 0 && page >= totalPages" style="text-align: center; padding: 14px; color: #94a3b8; font-size: 12.5px;">
+        Mostrando todas las publicaciones disponibles.
       </div>
     </div>
   `,
 })
-export class PublicacionesComponent implements OnInit {
+export class PublicacionesComponent implements OnInit, OnDestroy {
   publicaciones: any[] = [];
   usuarioActual: any = null;
 
@@ -286,7 +275,30 @@ export class PublicacionesComponent implements OnInit {
       return;
     }
     this.usuarioActual = JSON.parse(userJson);
-    this.cargarPublicaciones();
+    this.cargarPublicaciones(false);
+  }
+
+  ngOnDestroy() {}
+
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    if (this.cargando || this.page >= this.totalPages) return;
+    const scrollPosition = window.innerHeight + window.scrollY;
+    const umbral = document.documentElement.scrollHeight - 220;
+    if (scrollPosition >= umbral) {
+      this.page += 1;
+      this.cargarPublicaciones(true);
+    }
+  }
+
+  irAPerfilAutor(pub: any) {
+    const autorId = pub?.autorId;
+    const miId = this.usuarioActual?.id || this.usuarioActual?._id;
+    if (!autorId || String(autorId) === String(miId)) {
+      this.router.navigate(['/mi-perfil']);
+      return;
+    }
+    this.router.navigate(['/perfil', autorId]);
   }
 
   verPublicacion(id: string) {
@@ -316,13 +328,21 @@ export class PublicacionesComponent implements OnInit {
     }
   }
 
-  cargarPublicaciones() {
+  cargarPublicaciones(agregar = false) {
+    if (this.cargando) return;
     this.cargando = true;
     const url = `${environment.apiUrl}/publicaciones?page=${this.page}&limit=${this.limit}&orden=${this.orden}`;
     this.http.get<any>(url).subscribe({
       next: (res) => {
         this.cargando = false;
-        this.publicaciones = res?.data || [];
+        const nuevas = res?.data || [];
+        if (agregar) {
+          const idsExistentes = new Set(this.publicaciones.map((p) => String(p._id)));
+          const filtradas = nuevas.filter((p: any) => !idsExistentes.has(String(p._id)));
+          this.publicaciones = [...this.publicaciones, ...filtradas];
+        } else {
+          this.publicaciones = nuevas;
+        }
         this.total = res?.total || 0;
         this.totalPages = res?.totalPages || 1;
         this.cdr.detectChanges();
@@ -336,14 +356,7 @@ export class PublicacionesComponent implements OnInit {
 
   cambiarOrden() {
     this.page = 1;
-    this.cargarPublicaciones();
-  }
-
-  cambiarPagina(nuevaPagina: number) {
-    if (nuevaPagina < 1 || nuevaPagina > this.totalPages) return;
-    this.page = nuevaPagina;
-    this.cargarPublicaciones();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.cargarPublicaciones(false);
   }
 
   crearPublicacion() {
@@ -373,7 +386,7 @@ export class PublicacionesComponent implements OnInit {
         this.tocadoTitulo = false;
         this.tocadoContenido = false;
         this.page = 1;
-        this.cargarPublicaciones();
+        this.cargarPublicaciones(false);
         this.mostrarToast('¡Publicación compartida con éxito!');
       },
       error: () => {
@@ -392,7 +405,10 @@ export class PublicacionesComponent implements OnInit {
   darLike(id: string) {
     const userId = this.usuarioActual?.id || this.usuarioActual?._id || this.usuarioActual?.nombre;
     this.http.post(`${environment.apiUrl}/publicaciones/${id}/like`, { userId }).subscribe({
-      next: () => this.cargarPublicaciones(),
+      next: () => {
+        this.page = 1;
+        this.cargarPublicaciones(false);
+      },
       error: () => this.mostrarToast('No se pudo actualizar el Me gusta.', 'error'),
     });
   }
@@ -410,7 +426,8 @@ export class PublicacionesComponent implements OnInit {
     this.http.delete(`${environment.apiUrl}/publicaciones/${id}`).subscribe({
       next: () => {
         this.confirmandoBorradoId = null;
-        this.cargarPublicaciones();
+        this.page = 1;
+        this.cargarPublicaciones(false);
         this.mostrarToast('Publicación y comentarios dados de baja.');
       },
       error: () => this.mostrarToast('No se pudo dar de baja la publicación.', 'error'),
