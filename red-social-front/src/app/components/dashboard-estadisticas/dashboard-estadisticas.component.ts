@@ -89,9 +89,14 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
           <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Usuarios activos publicando</span>
           <div style="font-size: 28px; font-weight: 800; color: #7c3aed; margin-top: 4px;">{{ totalUsuariosPublicando }}</div>
         </div>
+
+        <div class="surface-card" style="padding: 18px 22px;">
+          <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Me gusta en el lapso</span>
+          <div style="font-size: 28px; font-weight: 800; color: #e11d48; margin-top: 4px;">{{ totalLikesDia }}</div>
+        </div>
       </div>
 
-      <!-- Grilla de 3 gráficos distintos -->
+      <!-- Grilla de gráficos -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 22px;">
 
         <!-- Gráfico 1: Barras (Publicaciones por usuario) -->
@@ -132,6 +137,45 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
             <canvas #canvasTorta></canvas>
           </div>
         </div>
+
+        <!-- Gráfico 4 (Sprint 5): Ingresos (log in) por usuario -->
+        <div [appResaltarHover]="'#fde047'" class="surface-card" style="padding: 22px;">
+          <h3 style="margin: 0 0 4px 0; color: #0f172a; font-size: 16px; font-weight: 800;">
+            4. Cantidad de ingresos (log in) por usuario
+          </h3>
+          <p style="margin: 0 0 16px 0; color: #64748b; font-size: 12.5px;">
+            Total de inicios de sesión registrados por cada usuario
+          </p>
+          <div style="position: relative; height: 280px;">
+            <canvas #canvasIngresos></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfico 5 (Sprint 5): Visitas a perfil por otros usuarios -->
+        <div [appResaltarHover]="'#67e8f9'" class="surface-card" style="padding: 22px;">
+          <h3 style="margin: 0 0 4px 0; color: #0f172a; font-size: 16px; font-weight: 800;">
+            5. Visitas a perfil (otros usuarios)
+          </h3>
+          <p style="margin: 0 0 16px 0; color: #64748b; font-size: 12.5px;">
+            Cantidad de visitas recibidas en el perfil por usuarios distintos a uno mismo
+          </p>
+          <div style="position: relative; height: 280px;">
+            <canvas #canvasVisitas></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfico 6 (Sprint 5): Me gusta otorgados por día -->
+        <div [appResaltarHover]="'#fda4af'" class="surface-card" style="padding: 22px; grid-column: 1 / -1;">
+          <h3 style="margin: 0 0 4px 0; color: #0f172a; font-size: 16px; font-weight: 800;">
+            6. Cantidad de me gusta otorgados por día
+          </h3>
+          <p style="margin: 0 0 16px 0; color: #64748b; font-size: 12.5px;">
+            Evolución diaria de me gusta en el rango de fechas seleccionado
+          </p>
+          <div style="position: relative; height: 290px;">
+            <canvas #canvasLikesDia></canvas>
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -140,6 +184,9 @@ export class DashboardEstadisticasComponent implements OnInit, AfterViewInit, On
   @ViewChild('canvasBarras') canvasBarras!: ElementRef<HTMLCanvasElement>;
   @ViewChild('canvasLineas') canvasLineas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('canvasTorta') canvasTorta!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('canvasIngresos') canvasIngresos!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('canvasVisitas') canvasVisitas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('canvasLikesDia') canvasLikesDia!: ElementRef<HTMLCanvasElement>;
 
   desde = '';
   hasta = '';
@@ -147,10 +194,14 @@ export class DashboardEstadisticasComponent implements OnInit, AfterViewInit, On
   totalPublicaciones = 0;
   totalComentarios = 0;
   totalUsuariosPublicando = 0;
+  totalLikesDia = 0;
 
   private chartBarras?: Chart;
   private chartLineas?: Chart;
   private chartTorta?: Chart;
+  private chartIngresos?: Chart;
+  private chartVisitas?: Chart;
+  private chartLikesDia?: Chart;
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
@@ -166,6 +217,9 @@ export class DashboardEstadisticasComponent implements OnInit, AfterViewInit, On
     this.chartBarras?.destroy();
     this.chartLineas?.destroy();
     this.chartTorta?.destroy();
+    this.chartIngresos?.destroy();
+    this.chartVisitas?.destroy();
+    this.chartLikesDia?.destroy();
   }
 
   aplicarRangoRapido(dias: number, recargar = true) {
@@ -196,16 +250,24 @@ export class DashboardEstadisticasComponent implements OnInit, AfterViewInit, On
       porUsuario: this.http.get<any>(`${environment.apiUrl}/estadisticas/publicaciones-por-usuario${query}`),
       porTiempo: this.http.get<any>(`${environment.apiUrl}/estadisticas/comentarios-por-tiempo${query}`),
       porPublicacion: this.http.get<any>(`${environment.apiUrl}/estadisticas/comentarios-por-publicacion${query}`),
+      ingresosUsuario: this.http.get<any>(`${environment.apiUrl}/estadisticas/ingresos-por-usuario${query}`),
+      visitasUsuario: this.http.get<any>(`${environment.apiUrl}/estadisticas/visitas-por-usuario${query}`),
+      likesDia: this.http.get<any>(`${environment.apiUrl}/estadisticas/likes-por-dia${query}`),
     }).subscribe({
-      next: ({ porUsuario, porTiempo, porPublicacion }) => {
+      next: ({ porUsuario, porTiempo, porPublicacion, ingresosUsuario, visitasUsuario, likesDia }) => {
         const datosUsuarios: number[] = porUsuario?.data || [];
         this.totalPublicaciones = datosUsuarios.reduce((a, b) => a + b, 0);
         this.totalUsuariosPublicando = datosUsuarios.length;
         this.totalComentarios = porTiempo?.total || 0;
+        this.totalLikesDia =
+          likesDia?.total ?? (likesDia?.data || []).reduce((a: number, b: number) => a + b, 0);
 
         this.renderizarBarras(porUsuario?.labels || [], datosUsuarios);
         this.renderizarLineas(porTiempo?.labels || [], porTiempo?.data || []);
         this.renderizarTorta(porPublicacion?.labels || [], porPublicacion?.data || []);
+        this.renderizarIngresos(ingresosUsuario?.labels || [], ingresosUsuario?.data || []);
+        this.renderizarVisitas(visitasUsuario?.labels || [], visitasUsuario?.data || []);
+        this.renderizarLikesDia(likesDia?.labels || [], likesDia?.data || []);
         this.cdr.detectChanges();
       },
     });
@@ -299,6 +361,94 @@ export class DashboardEstadisticasComponent implements OnInit, AfterViewInit, On
         plugins: {
           legend: { position: 'right' },
         },
+      },
+    });
+  }
+
+  private renderizarIngresos(labels: string[], data: number[]) {
+    this.chartIngresos?.destroy();
+    if (!this.canvasIngresos) return;
+
+    this.chartIngresos = new Chart(this.canvasIngresos.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: labels.length ? labels : ['Sin ingresos registrados'],
+        datasets: [
+          {
+            label: 'Ingresos (log in)',
+            data: data.length ? data : [0],
+            backgroundColor: '#eab308',
+            borderRadius: 8,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+      },
+    });
+  }
+
+  private renderizarVisitas(labels: string[], data: number[]) {
+    this.chartVisitas?.destroy();
+    if (!this.canvasVisitas) return;
+
+    this.chartVisitas = new Chart(this.canvasVisitas.nativeElement, {
+      type: 'doughnut',
+      data: {
+        labels: labels.length ? labels : ['Sin visitas registradas'],
+        datasets: [
+          {
+            label: 'Visitas a perfil',
+            data: data.length ? data : [0],
+            backgroundColor: [
+              '#06b6d4',
+              '#3b82f6',
+              '#8b5cf6',
+              '#10b981',
+              '#f59e0b',
+              '#ec4899',
+            ],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right' },
+        },
+      },
+    });
+  }
+
+  private renderizarLikesDia(labels: string[], data: number[]) {
+    this.chartLikesDia?.destroy();
+    if (!this.canvasLikesDia) return;
+
+    this.chartLikesDia = new Chart(this.canvasLikesDia.nativeElement, {
+      type: 'line',
+      data: {
+        labels: labels.length ? labels : ['Sin me gusta en el período'],
+        datasets: [
+          {
+            label: 'Me gusta otorgados',
+            data: data.length ? data : [0],
+            borderColor: '#e11d48',
+            backgroundColor: 'rgba(225, 29, 72, 0.16)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 5,
+            pointBackgroundColor: '#e11d48',
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
       },
     });
   }
