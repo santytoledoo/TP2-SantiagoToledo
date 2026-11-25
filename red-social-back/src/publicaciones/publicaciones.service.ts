@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Publicacion } from './schemas/publicacion.schema';
@@ -11,7 +16,20 @@ export class PublicacionesService {
     @InjectModel(Comentario.name) private comentarioModel: Model<Comentario>,
   ) {}
 
-  private async hidratarAutores(items: any[]) {
+  private enriquecerPublicacion(plain: any, usuarioId?: string) {
+    const guardadosPor = Array.isArray(plain.guardadosPor) ? plain.guardadosPor : [];
+    const compartidos = Array.isArray(plain.compartidos) ? plain.compartidos : [];
+    return {
+      ...plain,
+      guardadosPor,
+      compartidos,
+      cantidadGuardados: guardadosPor.length,
+      cantidadCompartidos: compartidos.length,
+      guardadaPorMi: usuarioId ? guardadosPor.includes(String(usuarioId)) : false,
+    };
+  }
+
+  private async hidratarAutores(items: any[], usuarioId?: string) {
     const userModel = this.publicacionModel.db.models['Usuario'];
     const autorIds = [
       ...new Set(
@@ -39,19 +57,24 @@ export class PublicacionesService {
         plain.autorUsername = u.username;
         plain.autorFoto = u.fotoPerfil || '';
       }
-      return plain;
+      return this.enriquecerPublicacion(plain, usuarioId);
     });
   }
 
   async crear(dto: any) {
     const nuevaPublicacion = new this.publicacionModel({
       ...dto,
+      guardadosPor: [],
+      compartidos: [],
       activo: true,
     });
     return await nuevaPublicacion.save();
   }
 
-  async obtenerTodas(query: { page?: string; limit?: string; orden?: string; autorId?: string }) {
+  async obtenerTodas(
+    query: { page?: string; limit?: string; orden?: string; autorId?: string; guardadosUsuarioId?: string },
+    usuarioTokenId?: string,
+  ) {
     const page = Math.max(1, parseInt(query.page || '1', 10));
     const limit = Math.max(1, parseInt(query.limit || '5', 10));
     const skip = (page - 1) * limit;
@@ -60,6 +83,10 @@ export class PublicacionesService {
     if (query.autorId) {
       filtro.autorId = query.autorId;
     }
+    const uidGuardados = query.guardadosUsuarioId || usuarioTokenId;
+    if (query.guardadosUsuarioId && uidGuardados) {
+      filtro.guardadosPor = String(uidGuardados);
+    }
 
     const total = await this.publicacionModel.countDocuments(filtro);
     const totalPages = Math.ceil(total / limit) || 1;
@@ -67,14 +94,35 @@ export class PublicacionesService {
     let data: any[] = [];
 
     if (query.orden === 'likes') {
-      const pipeline: any[] = [
-        { $match: filtro },
-        { $addFields: { cantidadLikes: { $size: { $ifNull: ['$likes', []] } } } },
-        { $sort: { cantidadLikes: -1, createdAt: -1 } },
-        { $skip: skip },
-        { $limit: limit },
-      ];
-      data = await this.publicacionModel.aggregate(pipeline).exec();
+      data = await this.publicacionModel
+        .aggregate([
+          { $match: filtro },
+          { $addFields: { cantidadLikes: { $size: { $ifNull: ['$likes', []] } } } },
+          { $sort: { cantidadLikes: -1, createdAt: -1 } },
+          { $skip: skip },
+          { $limit: limit },
+        ])
+        .exec();
+    } else if (query.orden === 'guardados') {
+      data = await this.publicacionModel
+        .aggregate([
+          { $match: filtro },
+          { $addFields: { cantidadGuardados: { $size: { $ifNull: ['$guardadosPor', []] } } } },
+          { $sort: { cantidadGuardados: -1, createdAt: -1 } },
+          { $skip: skip },
+          { $limit: limit },
+        ])
+        .exec();
+    } else if (query.orden === 'compartidos') {
+      data = await this.publicacionModel
+        .aggregate([
+          { $match: filtro },
+          { $addFields: { cantidadCompartidos: { $size: { $ifNull: ['$compartidos', []] } } } },
+          { $sort: { cantidadCompartidos: -1, createdAt: -1 } },
+          { $skip: skip },
+          { $limit: limit },
+        ])
+        .exec();
     } else {
       data = await this.publicacionModel
         .find(filtro)
@@ -84,7 +132,7 @@ export class PublicacionesService {
         .exec();
     }
 
-    const dataActualizada = await this.hidratarAutores(data);
+    const dataActualizada = await this.hidratarAutores(data, usuarioTokenId);
 
     return {
       data: dataActualizada,
@@ -94,15 +142,136 @@ export class PublicacionesService {
     };
   }
 
-  async obtenerPorId(id: string) {
+  async obtenerPorId(id: string, usuarioTokenId?: string) {
     const pub = await this.publicacionModel
       .findOne({ _id: id, activo: { $ne: false } })
       .exec();
     if (!pub) {
       throw new NotFoundException('Publicación no encontrada o dada de baja.');
     }
-    const [hidratada] = await this.hidratarAutores([pub]);
+    const [hidratada] = await this.hidratarAutores([pub], usuarioTokenId);
     return hidratada;
+  }
+
+  async guardarPublicacion(id: string, usuarioId: string) {
+    const pub = await this.publicacionModel.findOne({ _id: id, activo: { $ne: false } });
+    if (!pub) {
+      throw new NotFoundException('Publicación no encontrada.');
+    }
+    const uid = String(usuarioId);
+    if (!Array.isArray(pub.guardadosPor)) {
+      pub.guardadosPor = [];
+    }
+    if (!pub.guardadosPor.includes(uid)) {
+      pub.guardadosPor.push(uid);
+      await pub.save();
+    }
+    const [hidratada] = await this.hidratarAutores([pub], uid);
+    return {
+      message: 'Publicación guardada.',
+      guardada: true,
+      publicacion: hidratada,
+    };
+  }
+
+  async quitarGuardadoPublicacion(id: string, usuarioId: string) {
+    const pub = await this.publicacionModel.findOne({ _id: id, activo: { $ne: false } });
+    if (!pub) {
+      throw new NotFoundException('Publicación no encontrada.');
+    }
+    const uid = String(usuarioId);
+    pub.guardadosPor = (pub.guardadosPor || []).filter((item) => String(item) !== uid);
+    await pub.save();
+    const [hidratada] = await this.hidratarAutores([pub], uid);
+    return {
+      message: 'Publicación quitada de guardados.',
+      guardada: false,
+      publicacion: hidratada,
+    };
+  }
+
+  async listarDestinatariosCompartir(usuarioId: string) {
+    const userModel = this.publicacionModel.db.models['Usuario'];
+    if (!userModel) return [];
+
+    const usuarios = await userModel
+      .find({ activo: { $ne: false }, _id: { $ne: usuarioId } })
+      .select('nombre apellido username fotoPerfil')
+      .lean()
+      .exec();
+
+    return (usuarios as any[]).map((u) => ({
+      id: String(u._id),
+      nombre: u.nombre,
+      apellido: u.apellido,
+      username: u.username,
+      fotoPerfil: u.fotoPerfil || '',
+      nombreCompleto: `${u.nombre || ''} ${u.apellido || ''}`.trim() || u.username,
+    }));
+  }
+
+  async compartirPublicacion(id: string, emisorId: string, destinatarioId: string) {
+    if (!destinatarioId) {
+      throw new BadRequestException('Debés indicar el usuario destinatario.');
+    }
+
+    const pub = await this.publicacionModel.findOne({ _id: id, activo: { $ne: false } });
+    if (!pub) {
+      throw new NotFoundException('Publicación no encontrada.');
+    }
+
+    const userModel = this.publicacionModel.db.models['Usuario'];
+    const emisor: any = userModel ? await userModel.findById(emisorId).lean().exec() : null;
+    const destinatario: any = userModel ? await userModel.findById(destinatarioId).lean().exec() : null;
+
+    if (!destinatario || destinatario.activo === false) {
+      throw new NotFoundException('El usuario destinatario no existe o está deshabilitado.');
+    }
+
+    const registro = {
+      deUsuarioId: String(emisorId),
+      deUsuarioNombre: emisor
+        ? `${emisor.nombre || ''} ${emisor.apellido || ''}`.trim() || emisor.username
+        : 'Usuario',
+      deUsuarioUsername: emisor?.username || '',
+      paraUsuarioId: String(destinatarioId),
+      fecha: new Date(),
+    };
+
+    if (!Array.isArray(pub.compartidos)) {
+      pub.compartidos = [];
+    }
+    pub.compartidos.push(registro);
+    await pub.save();
+
+    const [hidratada] = await this.hidratarAutores([pub], emisorId);
+    return {
+      message: `Publicación compartida con @${destinatario.username || destinatario.nombre}.`,
+      publicacion: hidratada,
+    };
+  }
+
+  async listarCompartidasConmigo(usuarioId: string) {
+    const uid = String(usuarioId);
+    const pubs = await this.publicacionModel
+      .find({
+        activo: { $ne: false },
+        'compartidos.paraUsuarioId': uid,
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    const hidratadas = await this.hidratarAutores(pubs, uid);
+
+    return hidratadas.map((pub: any) => {
+      const compartidosParaMi = (pub.compartidos || []).filter(
+        (c: any) => String(c.paraUsuarioId) === uid,
+      );
+      return {
+        ...pub,
+        compartidosConmigo: compartidosParaMi,
+      };
+    });
   }
 
   async toggleLike(id: string, userId: string) {

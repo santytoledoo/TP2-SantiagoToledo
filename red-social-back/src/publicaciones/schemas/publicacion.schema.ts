@@ -1,6 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
+export interface CompartidoRegistro {
+  deUsuarioId: string;
+  deUsuarioNombre: string;
+  deUsuarioUsername: string;
+  paraUsuarioId: string;
+  fecha: Date;
+}
+
 @Schema({ timestamps: true, collection: 'publicaciones' })
 export class Publicacion extends Document {
   @Prop({ required: true })
@@ -26,6 +34,12 @@ export class Publicacion extends Document {
 
   @Prop({ type: [String], default: [] })
   likes: string[];
+
+  @Prop({ type: [String], default: [] })
+  guardadosPor: string[];
+
+  @Prop({ type: [Object], default: [] })
+  compartidos: CompartidoRegistro[];
 
   @Prop({ default: true })
   activo: boolean;
