@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Put, Body, Param, Headers } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Body,
+  Param,
+  Headers,
+  Query,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -28,8 +37,21 @@ export class AuthController {
   }
 
   @Get('perfil/:id')
-  async obtenerPerfil(@Param('id') id: string) {
-    return this.authService.obtenerPerfil(id);
+  async obtenerPerfil(
+    @Param('id') id: string,
+    @Headers('authorization') authHeader?: string,
+    @Query('visitanteId') visitanteId?: string,
+  ) {
+    return this.authService.obtenerPerfil(id, authHeader, visitanteId);
+  }
+
+  @Post('perfil/:id/visita')
+  async registrarVisitaPerfil(
+    @Param('id') id: string,
+    @Headers('authorization') authHeader?: string,
+    @Body() body?: any,
+  ) {
+    return this.authService.registrarVisitaPerfil(id, authHeader, body?.visitanteId);
   }
 
   @Put('perfil/:id')

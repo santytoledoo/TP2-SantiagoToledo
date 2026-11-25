@@ -168,4 +168,94 @@ export class EstadisticasController {
       detalle,
     };
   }
+
+  // 4. Sprint 5: Cantidad de ingresos (log in) por usuario
+  @Get('ingresos-por-usuario')
+  async ingresosPorUsuario() {
+    const userModel = this.publicacionModel.db.models['Usuario'];
+    const usuarios = userModel
+      ? await userModel.find().select('nombre apellido username loginsCount').lean().exec()
+      : [];
+
+    const detalle = (usuarios as any[])
+      .map((u) => {
+        const nombre = `${u.nombre || ''} ${u.apellido || ''}`.trim() || u.username || 'Usuario';
+        const etiqueta = u.username ? `${nombre} (@${u.username})` : nombre;
+        return {
+          usuario: etiqueta,
+          cantidad: Number(u.loginsCount || 0),
+        };
+      })
+      .sort((a, b) => b.cantidad - a.cantidad);
+
+    return {
+      labels: detalle.map((d) => d.usuario),
+      data: detalle.map((d) => d.cantidad),
+      detalle,
+    };
+  }
+
+  // 5. Sprint 5: Cantidad de visitas a mi perfil (por parte de usuarios que no sean uno mismo)
+  @Get('visitas-por-usuario')
+  async visitasPorUsuario() {
+    const userModel = this.publicacionModel.db.models['Usuario'];
+    const usuarios = userModel
+      ? await userModel.find().select('nombre apellido username visitasPerfilCount').lean().exec()
+      : [];
+
+    const detalle = (usuarios as any[])
+      .map((u) => {
+        const nombre = `${u.nombre || ''} ${u.apellido || ''}`.trim() || u.username || 'Usuario';
+        const etiqueta = u.username ? `${nombre} (@${u.username})` : nombre;
+        return {
+          usuario: etiqueta,
+          cantidad: Number(u.visitasPerfilCount || 0),
+        };
+      })
+      .sort((a, b) => b.cantidad - a.cantidad);
+
+    return {
+      labels: detalle.map((d) => d.usuario),
+      data: detalle.map((d) => d.cantidad),
+      detalle,
+    };
+  }
+
+  // 6. Sprint 5: Cantidad de me gusta otorgados por día
+  @Get('likes-por-dia')
+  async likesPorDia(
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
+    const filtroFecha = this.construirFiltroFecha(desde, hasta);
+    const publicaciones = await this.publicacionModel
+      .find({ activo: { $ne: false }, ...filtroFecha })
+      .select('likes createdAt updatedAt')
+      .lean()
+      .exec();
+
+    const mapaDias = new Map<string, number>();
+
+    for (const pub of publicaciones as any[]) {
+      const cantidadLikes = Array.isArray(pub.likes) ? pub.likes.length : 0;
+      if (cantidadLikes <= 0) continue;
+      const fechaFuente = pub.updatedAt || pub.createdAt || new Date();
+      const dia = new Date(fechaFuente).toISOString().slice(0, 10);
+      mapaDias.set(dia, (mapaDias.get(dia) || 0) + cantidadLikes);
+    }
+
+    const detalle = Array.from(mapaDias.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([fecha, cantidad]) => ({
+        fecha,
+        cantidad,
+      }));
+
+    return {
+      labels: detalle.map((d) => d.fecha),
+      data: detalle.map((d) => d.cantidad),
+      total: detalle.reduce((acc, cur) => acc + cur.cantidad, 0),
+      detalle,
+    };
+  }
 }

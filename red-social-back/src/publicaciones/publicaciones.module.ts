@@ -5,6 +5,7 @@ import { EstadisticasController } from './estadisticas.controller';
 import { PublicacionesService } from './publicaciones.service';
 import { Publicacion, PublicacionSchema } from './schemas/publicacion.schema';
 import { Comentario, ComentarioSchema } from './schemas/comentario.schema';
+import { Usuario, UsuarioSchema } from '../usuarios/schemas/usuario.schema';
 import { AuthModule } from '../auth/auth.module';
 import { AdminGuard } from '../auth/guards/admin.guard';
 
@@ -13,6 +14,7 @@ import { AdminGuard } from '../auth/guards/admin.guard';
     MongooseModule.forFeature([
       { name: Publicacion.name, schema: PublicacionSchema },
       { name: Comentario.name, schema: ComentarioSchema },
+      { name: Usuario.name, schema: UsuarioSchema },
     ]),
     AuthModule,
   ],

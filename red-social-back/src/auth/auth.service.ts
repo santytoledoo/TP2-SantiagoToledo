@@ -20,15 +20,18 @@ export class AuthService {
   private formatearUsuario(usuario: any) {
     return {
       id: usuario._id,
+      _id: usuario._id,
       nombre: usuario.nombre,
       apellido: usuario.apellido,
       correo: usuario.correo,
       username: usuario.username,
-      fechaNacimiento: usuario.fechaNacimiento,
+      fechaNacimiento: usuario.fechaNacimiento || '',
       descripcion: usuario.descripcion || '',
       fotoPerfil: usuario.fotoPerfil || '',
       rol: usuario.rol || 'usuario',
       activo: usuario.activo !== false,
+      loginsCount: usuario.loginsCount || 0,
+      visitasPerfilCount: usuario.visitasPerfilCount || 0,
     };
   }
 
@@ -45,6 +48,18 @@ export class AuthService {
   private limpiarToken(rawToken?: string): string {
     if (!rawToken) return '';
     return rawToken.startsWith('Bearer ') ? rawToken.slice(7).trim() : rawToken.trim();
+  }
+
+  private extraerUserIdDeToken(rawToken?: string): string | null {
+    const token = this.limpiarToken(rawToken);
+    if (!token) return null;
+    try {
+      const payload: any = this.jwtService.verify(token);
+      return payload?.sub ? String(payload.sub) : null;
+    } catch {
+      const decoded: any = this.jwtService.decode(token);
+      return decoded?.sub ? String(decoded.sub) : null;
+    }
   }
 
   async registrar(dto: any) {
@@ -65,6 +80,9 @@ export class AuthService {
       rol: dto.rol === 'administrador' ? 'administrador' : 'usuario',
       activo: true,
       password: hashedPassword,
+      loginsCount: 1,
+      visitasPerfilCount: 0,
+      visitantesIds: [],
     });
 
     const guardado = await nuevoUsuario.save();
@@ -103,6 +121,9 @@ export class AuthService {
         'Tu cuenta se encuentra deshabilitada. No estás autorizado para ingresar.',
       );
     }
+
+    usuario.loginsCount = (usuario.loginsCount || 0) + 1;
+    await usuario.save();
 
     const access_token = this.generarToken(usuario);
 
@@ -165,12 +186,36 @@ export class AuthService {
     }
   }
 
-  async obtenerPerfil(id: string) {
+  async obtenerPerfil(id: string, rawToken?: string, visitanteQueryId?: string) {
     const usuario = await this.usuarioModel.findById(id);
     if (!usuario) {
       throw new NotFoundException('Usuario no encontrado.');
     }
+
+    const visitanteId = this.extraerUserIdDeToken(rawToken) || visitanteQueryId || null;
+    if (visitanteId && String(visitanteId) !== String(usuario._id)) {
+      usuario.visitasPerfilCount = (usuario.visitasPerfilCount || 0) + 1;
+      await usuario.save();
+    }
+
     return this.formatearUsuario(usuario);
+  }
+
+  async registrarVisitaPerfil(id: string, rawToken?: string, visitanteBodyId?: string) {
+    const usuario = await this.usuarioModel.findById(id);
+    if (!usuario) {
+      throw new NotFoundException('Usuario no encontrado.');
+    }
+
+    const visitanteId = this.extraerUserIdDeToken(rawToken) || visitanteBodyId || null;
+    if (visitanteId && String(visitanteId) !== String(usuario._id)) {
+      usuario.visitasPerfilCount = (usuario.visitasPerfilCount || 0) + 1;
+      await usuario.save();
+    }
+
+    return {
+      visitasPerfilCount: usuario.visitasPerfilCount || 0,
+    };
   }
 
   async actualizarPerfil(id: string, datos: any) {

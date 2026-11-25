@@ -97,7 +97,7 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
         <!-- Gráfico 1: Barras (Publicaciones por usuario) -->
         <div [appResaltarHover]="'#93c5fd'" class="surface-card" style="padding: 22px;">
           <h3 style="margin: 0 0 4px 0; color: #0f172a; font-size: 16px; font-weight: 800;">
-            1. Publicaciones por usuario (Barras)
+            1. Publicaciones por usuario
           </h3>
           <p style="margin: 0 0 16px 0; color: #64748b; font-size: 12.5px;">
             Cantidad de publicaciones realizadas por cada autor en el período
@@ -110,7 +110,7 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
         <!-- Gráfico 2: Líneas (Comentarios en un lapso de tiempo) -->
         <div [appResaltarHover]="'#86efac'" class="surface-card" style="padding: 22px;">
           <h3 style="margin: 0 0 4px 0; color: #0f172a; font-size: 16px; font-weight: 800;">
-            2. Evolución de comentarios en el tiempo (Líneas)
+            2. Evolución de comentarios en el tiempo
           </h3>
           <p style="margin: 0 0 16px 0; color: #64748b; font-size: 12.5px;">
             Cantidad de comentarios realizados por día en el lapso seleccionado
@@ -123,7 +123,7 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
         <!-- Gráfico 3: Torta (Comentarios por publicación) -->
         <div [appResaltarHover]="'#c4b5fd'" class="surface-card" style="padding: 22px; grid-column: 1 / -1;">
           <h3 style="margin: 0 0 4px 0; color: #0f172a; font-size: 16px; font-weight: 800;">
-            3. Comentarios por publicación (Torta)
+            3. Comentarios por publicación
           </h3>
           <p style="margin: 0 0 16px 0; color: #64748b; font-size: 12.5px;">
             Distribución de comentarios recibidos en cada publicación dentro del lapso elegido

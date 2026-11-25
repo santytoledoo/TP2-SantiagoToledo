@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'usuarios' })
 export class Usuario extends Document {
   @Prop({ required: true })
   nombre: string;
@@ -18,7 +18,7 @@ export class Usuario extends Document {
   @Prop({ required: true })
   password: string;
 
-  @Prop()
+  @Prop({ default: '' })
   fechaNacimiento: string;
 
   @Prop({ default: '' })
@@ -27,11 +27,20 @@ export class Usuario extends Document {
   @Prop({ default: '' })
   fotoPerfil: string;
 
-  @Prop({ default: 'usuario', enum: ['usuario', 'administrador'] })
+  @Prop({ default: 'usuario' })
   rol: string;
 
   @Prop({ default: true })
   activo: boolean;
+
+  @Prop({ default: 0 })
+  loginsCount: number;
+
+  @Prop({ default: 0 })
+  visitasPerfilCount: number;
+
+  @Prop({ type: [String], default: [] })
+  visitantesIds: string[];
 }
 
 export const UsuarioSchema = SchemaFactory.createForClass(Usuario);
