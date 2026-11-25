@@ -38,7 +38,6 @@ nav {
   box-shadow: 0 10px 30px -10px rgba(2, 6, 23, 0.75) !important;
 }
 
-/* Fuerza blanco/claro en "UTN Social" y cualquier texto dentro de nav */
 nav,
 nav span,
 nav div,
@@ -46,18 +45,13 @@ nav a {
   color: #f8fafc !important;
 }
 
-/* Excepción en nav: botones/links activos con fondo blanco o pastel */
 nav a[style*="background: #ffffff"],
 nav a[style*="background:#ffffff"],
 nav a[style*="background: white"],
 nav a[style*="background: #eff6ff"],
 nav a[style*="background:#eff6ff"],
 nav a[style*="background: #f1f5f9"],
-nav a[style*="background:#f1f5f9"],
-nav button[style*="background: #fee2e2"],
-nav button[style*="background:#fee2e2"],
-nav button[style*="background: #fef2f2"],
-nav button[style*="background:#fef2f2"] {
+nav a[style*="background:#f1f5f9"] {
   color: #0f172a !important;
 }
 
@@ -143,8 +137,6 @@ nav a:hover {
   color: #e2e8f0 !important;
 }
 
-/* Sobrescribe todos los colores inline oscuros (#0f172a, #1e293b, #334155, #475569, #64748b, #94a3b8)
-   para que nombres de autor, "Publicaciones (5 de 10)", "Ordenar por", etc. se lean blancos/claros */
 .surface-card [style*="color: #0f172a"],
 .surface-card [style*="color:#0f172a"],
 .surface-card [style*="color: #1e293b"],
@@ -166,9 +158,14 @@ nav a:hover {
   color: #cbd5e1 !important;
 }
 
-/* Re-asegura texto oscuro ÚNICAMENTE dentro de botones y badges con fondo claro */
+/* =========================================================
+   4. CAJAS CLARAS INTERNAS: "Agregar foto", Comentarios, Badges y Botones
+   (Incluye TODOS sus descendientes p, span, strong, label, small, div)
+   ========================================================= */
 .surface-card button,
 .surface-card button *,
+.surface-card label[style*="background"],
+.surface-card label[style*="background"] *,
 .surface-card [style*="background: #fef3c7"],
 .surface-card [style*="background:#fef3c7"],
 .surface-card [style*="background: #fef3c7"] *,
@@ -195,13 +192,29 @@ nav a:hover {
 .surface-card [style*="background: #f1f5f9"] *,
 .surface-card [style*="background: #ffffff"],
 .surface-card [style*="background:#ffffff"],
+.surface-card [style*="background: #ffffff"] *,
 .surface-card [style*="background: white"],
-.surface-card [style*="background:white"] {
+.surface-card [style*="background:white"],
+.surface-card [style*="background: white"] *,
+.surface-card [style*="background-color: #f8fafc"],
+.surface-card [style*="background-color: #f1f5f9"],
+.surface-card [style*="background-color: #ffffff"],
+.surface-card [style*="background-color: white"] {
   color: #0f172a !important;
 }
 
+/* Textos secundarios dentro de cajas blancas (como @usuario y "Hace un momento" en comentarios) */
+.surface-card [style*="background: #f8fafc"] [style*="color: #64748b"],
+.surface-card [style*="background: #f8fafc"] [style*="color: #94a3b8"],
+.surface-card [style*="background: #ffffff"] [style*="color: #64748b"],
+.surface-card [style*="background: #ffffff"] [style*="color: #94a3b8"],
+.surface-card [style*="background: white"] [style*="color: #64748b"],
+.surface-card [style*="background: white"] [style*="color: #94a3b8"] {
+  color: #475569 !important;
+}
+
 /* =========================================================
-   4. AJUSTE DE TEXTOS LARGOS Y GRILLAS
+   5. AJUSTE DE TEXTOS LARGOS Y GRILLAS
    ========================================================= */
 .texto-ajustado {
   overflow-wrap: anywhere;
@@ -223,7 +236,7 @@ nav a:hover {
 }
 
 /* =========================================================
-   5. FORMULARIOS, INPUTS Y SELECT ("Ordenar por")
+   6. FORMULARIOS, INPUTS Y SELECT ("Ordenar por")
    ========================================================= */
 .field-group {
   margin-bottom: 16px;
@@ -296,7 +309,7 @@ select:focus {
 }
 
 /* =========================================================
-   6. TABLAS Y BOTÓN PRINCIPAL
+   7. TABLAS Y BOTÓN PRINCIPAL
    ========================================================= */
 table {
   color: #f1f5f9 !important;
@@ -344,7 +357,7 @@ td {
 }
 
 /* =========================================================
-   7. TOASTS Y SCROLLBAR
+   8. TOASTS Y SCROLLBAR
    ========================================================= */
 .toast-banner {
   position: fixed;

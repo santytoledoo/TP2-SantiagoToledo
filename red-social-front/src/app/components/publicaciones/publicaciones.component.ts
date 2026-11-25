@@ -86,7 +86,7 @@ import { ResaltarHoverDirective } from '../../directives/resaltar-hover.directiv
         <span class="error-text" *ngIf="errorImagen" style="margin-bottom: 10px;">{{ errorImagen }}</span>
 
         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #e2e8f0;">
-          <label style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: linear-gradient(180deg, #f8fafc, #e2e8f0); color: #334155; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">
+          <label style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: linear-gradient(180deg, #f8fafc, #e2e8f0); color: #0f172a; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;">
             📷 Agregar foto
             <input type="file" accept="image/*" (change)="onSeleccionarImagen($event)" style="display: none;">
           </label>
@@ -546,13 +546,40 @@ export class PublicacionesComponent implements OnInit, OnDestroy {
   }
 
   darLike(id: string) {
-    const userId = this.usuarioActual?.id || this.usuarioActual?._id || this.usuarioActual?.nombre;
-    this.http.post(`${environment.apiUrl}/publicaciones/${id}/like`, { userId }).subscribe({
-      next: () => {
-        this.page = 1;
-        this.cargarPublicaciones(false);
+    const pub = this.publicaciones.find((p) => String(p._id) === String(id));
+    if (!pub || pub._likeEnCurso) return;
+
+    const userId = String(this.usuarioActual?.id || this.usuarioActual?._id || this.usuarioActual?.nombre || '');
+    const likesPrevios = Array.isArray(pub.likes) ? [...pub.likes] : [];
+    const yaTeniaLike = this.usuarioDioLike(pub);
+
+    // Actualización optimista inmediata (0 ms)
+    pub._likeEnCurso = true;
+    if (yaTeniaLike) {
+      const uid = String(this.usuarioActual?.id || this.usuarioActual?._id || '');
+      const uname = String(this.usuarioActual?.nombre || '');
+      pub.likes = likesPrevios.filter((item) => String(item) !== uid && String(item) !== uname);
+    } else {
+      pub.likes = [...likesPrevios, userId];
+    }
+    this.cdr.detectChanges();
+
+    this.http.post<any>(`${environment.apiUrl}/publicaciones/${id}/like`, { userId }).subscribe({
+      next: (res) => {
+        pub._likeEnCurso = false;
+        if (Array.isArray(res?.likes)) {
+          pub.likes = res.likes;
+        } else if (Array.isArray(res?.publicacion?.likes)) {
+          pub.likes = res.publicacion.likes;
+        }
+        this.cdr.detectChanges();
       },
-      error: () => this.mostrarToast('No se pudo actualizar el Me gusta.', 'error'),
+      error: () => {
+        pub._likeEnCurso = false;
+        pub.likes = likesPrevios;
+        this.cdr.detectChanges();
+        this.mostrarToast('No se pudo actualizar el Me gusta.', 'error');
+      },
     });
   }
 
