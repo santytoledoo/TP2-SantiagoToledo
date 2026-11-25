@@ -10,6 +10,7 @@ import { environment } from '../../environments/environment';
 export class SesionService {
   private timerAviso: any = null;
   private intervaloCuentaRegresiva: any = null;
+  private timeoutMensaje: any = null;
 
   mostrarModalExtension$ = new BehaviorSubject<boolean>(false);
   extendiendoSesion$ = new BehaviorSubject<boolean>(false);
@@ -40,8 +41,11 @@ export class SesionService {
   }
 
   private mostrarMensaje(texto: string, tipo: 'success' | 'error' = 'success') {
+    if (this.timeoutMensaje) {
+      clearTimeout(this.timeoutMensaje);
+    }
     this.mensajeSesion$.next({ texto, tipo });
-    setTimeout(() => {
+    this.timeoutMensaje = setTimeout(() => {
       this.mensajeSesion$.next(null);
     }, 3200);
   }
@@ -54,8 +58,8 @@ export class SesionService {
     const payload = this.decodificarPayload(token);
     const ahoraMs = Date.now();
 
-    let expMs = ahoraMs + 60 * 1000;
-    let duracionTotalSeg = 60;
+    let expMs = ahoraMs + 900 * 1000;
+    let duracionTotalSeg = 900;
 
     if (payload?.exp) {
       expMs = payload.exp * 1000;
@@ -68,7 +72,8 @@ export class SesionService {
 
     const msRestantesTotales = expMs - ahoraMs;
     if (msRestantesTotales <= 1000) {
-      this.cerrarSesion();
+      this.mostrarModalExtension$.next(true);
+      this.iniciarCuentaRegresiva(expMs);
       return;
     }
 
@@ -100,7 +105,10 @@ export class SesionService {
       const restantes = Math.max(0, Math.ceil((expMs - Date.now()) / 1000));
       this.segundosRestantes$.next(restantes);
       if (restantes <= 0) {
-        this.cerrarSesion('Tu sesión expiró. Iniciá sesión nuevamente.');
+        if (this.intervaloCuentaRegresiva) {
+          clearInterval(this.intervaloCuentaRegresiva);
+          this.intervaloCuentaRegresiva = null;
+        }
       }
     };
 
@@ -126,17 +134,29 @@ export class SesionService {
 
   extenderSesion() {
     const token = localStorage.getItem('token');
-    if (!token) {
-      this.cerrarSesion();
+    const usuarioRaw = localStorage.getItem('usuario');
+    const usuarioGuardado = usuarioRaw ? JSON.parse(usuarioRaw) : null;
+
+    if (!token && !usuarioGuardado?.id && !usuarioGuardado?.correo) {
+      this.cerrarSesion('No se pudo extender porque el token ya venció.');
       return;
     }
 
     this.extendiendoSesion$.next(true);
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     this.http
       .post<any>(
         `${environment.apiUrl}/auth/refrescar`,
-        { token },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          token,
+          userId: usuarioGuardado?.id || usuarioGuardado?._id,
+          correo: usuarioGuardado?.correo,
+        },
+        { headers }
       )
       .subscribe({
         next: (res) => {

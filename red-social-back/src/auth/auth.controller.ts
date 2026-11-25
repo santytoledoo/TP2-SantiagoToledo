@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, Headers } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -13,6 +13,18 @@ export class AuthController {
   @Post('login')
   async login(@Body() body: any) {
     return this.authService.login(body);
+  }
+
+  @Post('autorizar')
+  async autorizar(@Headers('authorization') authHeader?: string, @Body() body?: any) {
+    const rawToken = authHeader || body?.token || body?.access_token;
+    return this.authService.autorizar(rawToken);
+  }
+
+  @Post('refrescar')
+  async refrescar(@Headers('authorization') authHeader?: string, @Body() body?: any) {
+    const rawToken = authHeader || body?.token || body?.access_token;
+    return this.authService.refrescar(rawToken);
   }
 
   @Get('perfil/:id')
